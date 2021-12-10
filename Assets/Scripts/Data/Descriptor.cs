@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -10,11 +11,17 @@ using Satisfy.Attributes;
 
 namespace TestTD.Data
 {
+    [CreateAssetMenu(fileName = "Descriptor", menuName = "Data/Descriptor")]
     public class Descriptor : ScriptableObject
     {
-        [SerializeField, LabelWidth(90), LabelText("Name")]
+        [BoxGroup("Descriptor", false)]
+        // [HorizontalGroup("Descriptor/1")]
+        [SerializeField, LabelWidth(40), LabelText("Name")]
         private string objectName;
-        [SerializeField, LabelWidth(90), LabelText("Description")]
+
+        [BoxGroup("Descriptor", false)]
+        // [HorizontalGroup("Descriptor/1")]
+        [SerializeField, LabelWidth(70), LabelText("Description"), Multiline]
         private string objectDescription;
 
         public string Name => objectName;

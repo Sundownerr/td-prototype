@@ -15,15 +15,15 @@ namespace TestTD.Data
     public class FloatParameter
     {
         [HorizontalGroup("parameter")]
-        [SerializeField, InlineEditor, HideLabel]
-        private FloatParameterDescriptor descriptor;
+        [SerializeField, HideLabel, HideInInlineEditors]
+        private FloatParameterSO so;
 
         [HorizontalGroup("parameter")]
         [SerializeField, HideLabel]
         private float baseValue;
 
         private readonly List<FloatModifier> modifiers = new List<FloatModifier>();
-        public FloatParameterDescriptor Descriptor => descriptor;
+        public FloatParameterSO So => so;
 
         public void Add(FloatModifier modifier)
         {

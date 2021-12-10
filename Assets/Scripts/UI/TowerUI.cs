@@ -17,15 +17,29 @@ namespace TestTD.UI
         [SerializeField, Editor_R] protected Transform content;
         [SerializeField, Tweakable] private UnityEvent onShow;
         [SerializeField, Tweakable] private UnityEvent onHide;
-
+        private bool visible;
+        
         public virtual void Show()
         {
             onShow?.Invoke();
+            visible = true;
         }
 
         public virtual void Hide()
         {
             onHide?.Invoke();
+            visible = false;
+        }
+
+        public void ToggleVisibility()
+        {
+            if (visible)
+            {
+                Hide();
+                return;
+            }
+            
+            Show();
         }
     }
 

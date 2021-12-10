@@ -69,13 +69,13 @@ namespace TestTD
             {
                 if (ignoreGUI)
                 {
-                    SetHitObject(castResult.transform);
+                    HandleHitObject(castResult.transform);
                     return;
                 }
 
                 if (!eventSystem.IsPointerOverGameObject(0))
                 {
-                    SetHitObject(castResult.transform);
+                    HandleHitObject(castResult.transform);
                 }
             }).AddTo(this);
         }
@@ -103,16 +103,16 @@ namespace TestTD
             return CastRay(rayStartPoint.position, rayStartPoint.forward);
         }
 
-        private void SetHitObject(Transform obj)
+        private void HandleHitObject(Transform obj)
         {
-            if (nextHitObject.transform == obj)
-                return;
-
             if (obj == null)
             {
                 HandleHitObjectLost();
                 return;
             }
+            
+            if (nextHitObject != null && nextHitObject.transform == obj)
+                return;
 
             nextHitObject = obj.gameObject;
             hitObject = nextHitObject;

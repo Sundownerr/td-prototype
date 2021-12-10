@@ -16,7 +16,7 @@ namespace TestTD
     public class TowerManager : MonoBehaviour
     {
         [SerializeField, Variable_R] private IntVariable currency;
-        [SerializeField, Variable_R] private FloatParameterDescriptor towerCostParameter;
+        [SerializeField, Variable_R] private FloatParameterSO towerCostParameter;
         [SerializeField, Variable_R] private TowerDataVariable towerBuildRequest;
         // [SerializeField, Variable_R] CellVariable selectedCell;
         [SerializeField, Tweakable] private UnityEvent onTowerSold;
