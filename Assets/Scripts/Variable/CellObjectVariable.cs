@@ -12,6 +12,14 @@ namespace TestTD.Variables
 
         public CellObject CellObject => cellObject;
 
+        public override void SetValue(GameObject value)
+        {
+            if (value == null)
+                return;
+
+            SetCellObject(value.GetComponent<CellObject>());
+        }
+
         public void SetCellObject(CellObject cellObject)
         {
             this.cellObject = cellObject;

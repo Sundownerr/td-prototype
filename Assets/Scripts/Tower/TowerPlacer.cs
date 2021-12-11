@@ -35,7 +35,7 @@ namespace TestTD
         }
         [SerializeField, Variable_R] private Variable pointerDown;
         [SerializeField, Variable_R] private Variable pointerUp;
-        [SerializeField, Variable_R] private TowerVariable selectedTower;
+        [SerializeField, Variable_R] private CellObjectVariable selectedTower;
         [SerializeField, Variable_R] private CellVariable highlightedCell;
         [SerializeField, Variable_R] private CellVariable selectedCell;
         [SerializeField, Variable_R] private CellVariable previousUsedCell;
@@ -63,7 +63,7 @@ namespace TestTD
             {
                 HideLine();
 
-                selectedTower.Behaviour.UseCell(selectedCell.Value as Cell);
+                selectedTower.CellObject.UseCell(selectedCell.Cell);
                 MoveTowerTo(selectedCell.Value.transform.position);
 
                 onEndPlacingSuccess?.Invoke();
@@ -72,7 +72,7 @@ namespace TestTD
             canceledReplacing.Subscribe(_ =>
             {
                 HideLine();
-                MoveTowerTo(selectedTower.Behaviour.Cell.transform.position);
+                MoveTowerTo(selectedTower.CellObject.Cell.transform.position);
 
                 onEndPlacingCanceled?.Invoke();
             }).AddTo(this);
@@ -92,7 +92,8 @@ namespace TestTD
         public void StartReplacing()
         {
             state = State.Replacing;
-            previousUsedCell.SetCell(selectedTower.Behaviour.Cell);
+        
+            previousUsedCell.SetCell(selectedTower.CellObject.Cell);
             previousUsedCell.Publish();
 
             ShowLine();

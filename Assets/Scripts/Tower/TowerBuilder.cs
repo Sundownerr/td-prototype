@@ -13,24 +13,24 @@ using TestTD.Variables;
 namespace TestTD
 {
     [Serializable]
-    public class TowerBehaviourEvent : UnityEvent<TowerBehaviour>{}
+    public class CellObjectEvent : UnityEvent<CellObject>{ }
     
     [HideMonoScript]
     public class TowerBuilder : MonoBehaviour
     {
         [SerializeField, Variable_R] private CellVariable selectedCell;
-        [SerializeField, Tweakable] private TowerBehaviourEvent onTowerBuilded;
+        [SerializeField, Tweakable] private CellObjectEvent onTowerBuilded;
 
         public void BuildTower(TowerDataVariable towerData)
         {
             var buildPosition = selectedCell.Value.transform.position;
             
-            var towerBehaviour = InstantiateTower(towerData.Value.Prefab, buildPosition)
-                .GetComponentInChildren<TowerBehaviour>();
+            var cellObject = InstantiateTower(towerData.Value.Prefab, buildPosition)
+                .GetComponentInChildren<CellObject>();
 
-            towerBehaviour.UseCell(selectedCell.Cell);
+            cellObject.UseCell(selectedCell.Cell);
          
-            onTowerBuilded?.Invoke(towerBehaviour);
+            onTowerBuilded?.Invoke(cellObject);
         }
 
         private void DestroyTower(CellObject towerBehaviour)
@@ -38,10 +38,11 @@ namespace TestTD
             Destroy(towerBehaviour.Reference);
         }
 
-        public void DestroyTower(TowerVariable towerVariable) => DestroyTower(towerVariable.CellObject);
+        public void DestroyTower(CellObjectVariable towerVariable) => DestroyTower(towerVariable.CellObject);
 
         private GameObject InstantiateTower(GameObject prefab, Vector3 position)
         {
+           
             var tower = Instantiate(prefab, position, Quaternion.identity);
 
             tower.transform.parent = transform;

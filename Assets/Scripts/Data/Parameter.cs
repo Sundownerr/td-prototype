@@ -16,14 +16,14 @@ namespace TestTD.Data
     {
         [HorizontalGroup("parameter")]
         [SerializeField, HideLabel, HideInInlineEditors]
-        private FloatParameterSO so;
+        private FloatParameterSO data;
 
         [HorizontalGroup("parameter")]
         [SerializeField, HideLabel]
         private float baseValue;
 
         private readonly List<FloatModifier> modifiers = new List<FloatModifier>();
-        public FloatParameterSO So => so;
+        public FloatParameterSO Data => data;
 
         public void Add(FloatModifier modifier)
         {

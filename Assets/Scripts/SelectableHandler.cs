@@ -19,6 +19,8 @@ namespace TestTD
         [SerializeField, Variable_R] private SelectableVariable highlighted;
         [SerializeField, Variable_R] private SelectableVariable selected;
         [SerializeField, Variable_R] private Variable pointerDown;
+        [SerializeField, Tweakable] private UnityEvent onSelected;
+        [SerializeField, Tweakable] private UnityEvent onDeselected;
         private Selectable currentSelected;
 
         private void Start()
@@ -57,15 +59,25 @@ namespace TestTD
                 {
                     DeselectCurrent();
                 }).AddTo(this);
+
+            this.ObserveEveryValueChanged(x => x.enabled)
+                .Where(x => x == false)
+                .Where(_ => highlighted.Value != null)
+                .Subscribe(_ =>
+                {
+                    highlighted.Value.Dehighlight();
+                }).AddTo(this);
         }
 
-        private void Select(Selectable selectable)
+        public void Select(Selectable selectable)
         {
             selected.SetValue(selectable.gameObject);
             selected.Publish();
             
             currentSelected = selectable;
             currentSelected.Select();
+
+            onSelected?.Invoke();;
         }
 
         public void Select(SelectableVariable selectableVariable)
@@ -86,6 +98,8 @@ namespace TestTD
                 selected.Value.Deselect();
                 selected.SetNullValue();
             }
+            
+            onDeselected?.Invoke();
         }
     }
 }

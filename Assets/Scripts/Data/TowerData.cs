@@ -37,7 +37,7 @@ namespace TestTD.Data
 
         public float GetValue(FloatParameterSO data)
         {
-            return parameters.Find(x => x.So == data).GetValue();
+            return parameters.Find(x => x.Data == data).GetValue();
         }
 
         [SerializeField, BoxGroup("Debug", false)] private TowerParametersVariable defaultTowerParameters;
@@ -46,7 +46,7 @@ namespace TestTD.Data
         public void ValidateData()
         {
             var defaultParametersList = defaultTowerParameters.List;
-            var currentParametersDescriptors = parameters.Select(x => x.So).ToList();
+            var currentParametersDescriptors = parameters.Select(x => x.Data).ToList();
 
             FillMissingParameters(defaultParametersList);
             DeleteDuplicates();
@@ -57,7 +57,7 @@ namespace TestTD.Data
         {
             for (var i = 0; i < parameters.Count; i++)
             {
-                if (parameters[i] == null || parameters[i].So == null)
+                if (parameters[i] == null || parameters[i].Data == null)
                 {
                     parameters.RemoveAt(i);
                 }
@@ -68,7 +68,7 @@ namespace TestTD.Data
         {
             for (var i = 0; i < parameters.Count; i++)
             {
-               var sameParameters = parameters.FindAll(x => x.So == parameters[i].So);
+               var sameParameters = parameters.FindAll(x => x.Data == parameters[i].Data);
 
                if (sameParameters.Count == 1)
                    continue;
@@ -86,7 +86,7 @@ namespace TestTD.Data
 
             foreach (var defaultParameter in defaultParametersList)
             {
-               var matchingParameter = parameters.Find(x => x.So == defaultParameter.So);
+               var matchingParameter = parameters.Find(x => x.Data == defaultParameter.Data);
 
                if (matchingParameter == null)
                {

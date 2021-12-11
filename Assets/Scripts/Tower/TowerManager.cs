@@ -21,14 +21,21 @@ namespace TestTD
     public class TowerManager : MonoBehaviour
     {
         [SerializeField, Variable_R] private TowerDataVariable towerBuildRequest;
+        [SerializeField, Variable_R] private CellVariable selectedCell;
         [SerializeField, Editor_R] private CurrencyManager currencyManager;
         [SerializeField, Tweakable] private TowerDataEvent onTowerSold;
         
-        private readonly Dictionary<TowerBehaviour, TowerData> towers = new Dictionary<TowerBehaviour, TowerData>();
+        private readonly Dictionary<CellObject, TowerData> towers = new Dictionary<CellObject, TowerData>();
         private TowerData lastBuildTowerData;
 
         public void TryBuildTower(TowerData data)
         {
+            if (selectedCell.Value == null)
+                return;
+
+            if (selectedCell.Cell.IsUsed)
+                return;
+            
             if (!currencyManager.CheckCanBuy(data))
                 return;
 
@@ -36,17 +43,17 @@ namespace TestTD
             towerBuildRequest.SetValueAndPublish(lastBuildTowerData);
         }
 
-        public void SellTower(TowerVariable tower)
+        public void SellTower(CellObjectVariable tower)
         {
-            var data = towers[tower.Behaviour];
+            var data = towers[tower.CellObject];
 
-            towers.Remove(tower.Behaviour);
+            towers.Remove(tower.CellObject);
             onTowerSold?.Invoke(data);
         }
 
-        public void HandleBuildedTower(TowerVariable tower)
+        public void HandleBuildedTower(CellObjectVariable tower)
         {
-            towers.Add(tower.Behaviour, lastBuildTowerData);
+            towers.Add(tower.CellObject, lastBuildTowerData);
             lastBuildTowerData = null;
         }
     }
