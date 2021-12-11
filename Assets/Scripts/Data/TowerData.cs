@@ -9,8 +9,11 @@ namespace TestTD.Data
     [HideMonoScript]
     [CreateAssetMenu(fileName = "new-tower", menuName = "Data/Tower")]
     [Serializable]
-    public class TowerData : Descriptor
+    public class TowerData : ScriptableObject
     {
+        [BoxGroup("TowerSettings", false)] [SerializeField]
+        private Descriptor descriptor;
+        
         [BoxGroup("TowerSettings", false)]
         [SerializeField] private TowerElement element;
 
@@ -32,7 +35,7 @@ namespace TestTD.Data
         [SerializeField]
         private List<FloatParameter> parameters = new List<FloatParameter>();
 
-        public float GetParameterValue(FloatParameterSO data)
+        public float GetValue(FloatParameterSO data)
         {
             return parameters.Find(x => x.So == data).GetValue();
         }

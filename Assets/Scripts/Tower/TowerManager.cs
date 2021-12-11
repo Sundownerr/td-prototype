@@ -10,24 +10,26 @@ using Satisfy.Variables;
 using Satisfy.Attributes;
 using TestTD.Variables;
 using TestTD.Data;
+using TestTD.Systems;
 
 namespace TestTD
 {
+    [Serializable]
+    public class TowerDataEvent : UnityEvent<TowerData> { }
+    
+    [HideMonoScript]
     public class TowerManager : MonoBehaviour
     {
-        [SerializeField, Variable_R] private IntVariable currency;
-        [SerializeField, Variable_R] private FloatParameterSO towerCost;
-        [SerializeField, Variable_R] private FloatParameterSO towerElementLevelRequirement;
         [SerializeField, Variable_R] private TowerDataVariable towerBuildRequest;
-        [SerializeField, Variable_R] private TowerElementListSO towerElements;
-        [SerializeField, Tweakable] private UnityEvent onTowerSold;
+        [SerializeField, Editor_R] private CurrencyManager currencyManager;
+        [SerializeField, Tweakable] private TowerDataEvent onTowerSold;
         
         private readonly Dictionary<TowerBehaviour, TowerData> towers = new Dictionary<TowerBehaviour, TowerData>();
         private TowerData lastBuildTowerData;
 
         public void TryBuildTower(TowerData data)
         {
-            if (!CheckCanBuild(data))
+            if (!currencyManager.CheckCanBuy(data))
                 return;
 
             lastBuildTowerData = data;
@@ -36,25 +38,16 @@ namespace TestTD
 
         public void SellTower(TowerVariable tower)
         {
+            var data = towers[tower.Behaviour];
+
             towers.Remove(tower.Behaviour);
-            
-            Destroy(tower.Value.Reference);
-            onTowerSold?.Invoke();
+            onTowerSold?.Invoke(data);
         }
 
         public void HandleBuildedTower(TowerVariable tower)
         {
             towers.Add(tower.Behaviour, lastBuildTowerData);
-        }
-
-        private bool CheckCanBuild(TowerData data)
-        {
-            var cost = data.GetParameterValue(towerCost);
-            var elementLevelRequirement = data.GetParameterValue(towerElementLevelRequirement);
-            var elementLevel = towerElements.List.Find(x => data.Element == x).Level;
-            
-            return cost <= currency.Value &&
-                   elementLevelRequirement <= elementLevel;
+            lastBuildTowerData = null;
         }
     }
 }

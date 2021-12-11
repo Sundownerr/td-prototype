@@ -12,30 +12,33 @@ using TestTD.Variables;
 
 namespace TestTD
 {
+    [Serializable]
+    public class TowerBehaviourEvent : UnityEvent<TowerBehaviour>{}
+    
     [HideMonoScript]
     public class TowerBuilder : MonoBehaviour
     {
         [SerializeField, Variable_R] private CellVariable selectedCell;
-        [SerializeField, Variable_R] private TowerVariable selectedTower;
-        [SerializeField, Variable_R] private GameObjectList buildedTowers;
-        [SerializeField, Tweakable] private GameObjectEvent onTowerBuilded;
+        [SerializeField, Tweakable] private TowerBehaviourEvent onTowerBuilded;
 
         public void BuildTower(TowerDataVariable towerData)
         {
-            if (selectedCell.Value == null)
-                return;
-
-            var tower = InstantiateTower(towerData.Value.Prefab, selectedCell.Value.transform.position);
-            var towerBehaviour = tower.GetComponentInChildren<TowerBehaviour>();
+            var buildPosition = selectedCell.Value.transform.position;
+            
+            var towerBehaviour = InstantiateTower(towerData.Value.Prefab, buildPosition)
+                .GetComponentInChildren<TowerBehaviour>();
 
             towerBehaviour.UseCell(selectedCell.Cell);
-            towerBehaviour.Select();
-
-            selectedTower.SetTowerBehaviour(towerBehaviour);
-            buildedTowers.Add(tower);
-
-            onTowerBuilded?.Invoke(towerBehaviour.gameObject);
+         
+            onTowerBuilded?.Invoke(towerBehaviour);
         }
+
+        private void DestroyTower(CellObject towerBehaviour)
+        {
+            Destroy(towerBehaviour.Reference);
+        }
+
+        public void DestroyTower(TowerVariable towerVariable) => DestroyTower(towerVariable.CellObject);
 
         private GameObject InstantiateTower(GameObject prefab, Vector3 position)
         {

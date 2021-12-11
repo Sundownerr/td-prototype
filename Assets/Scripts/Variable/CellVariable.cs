@@ -25,5 +25,16 @@ namespace TestTD.Variables
             this.cell = cell;
             SetValue(cell);
         }
+
+        public void SetUsed()
+        {
+            cell.SetUsed();
+            SetNullValue();
+        }
+
+        public void SetFree()
+        {
+            cell.SetFree();
+        }
     }
 }

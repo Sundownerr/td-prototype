@@ -59,9 +59,11 @@ namespace TestTD
                 }).AddTo(this);
         }
 
-        public void Select(Selectable selectable)
+        private void Select(Selectable selectable)
         {
             selected.SetValue(selectable.gameObject);
+            selected.Publish();
+            
             currentSelected = selectable;
             currentSelected.Select();
         }

@@ -16,12 +16,11 @@ namespace TestTD.UI
     [HideMonoScript]	
     public class TowerElementsUI : UIElement
     {
-        [SerializeField] private  GameObject elementUIPrefab    ;
-        [SerializeField] private Transform elementsUIParent;
-        [SerializeField] private IntVariable elementInvestPoints;
-        
-        [ListDrawerSettings(Expanded = true, ShowIndexLabels = false)]
-        [SerializeField] private TowerElement[] towerElements;
+        [SerializeField, Variable_R] private IntVariable elementInvestPoints;
+        [SerializeField, Editor_R] private  GameObject elementUIPrefab    ;
+        [SerializeField, Editor_R] private Transform elementsUIParent;
+        [ListDrawerSettings(Expanded = true, ShowIndexLabels = false)] 
+        [SerializeField, Editor_R] private TowerElement[] towerElements;
 
         private readonly List<TowerElementUI> elementsUI = new List<TowerElementUI>();
 
