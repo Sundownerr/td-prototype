@@ -63,7 +63,7 @@ namespace TestTD
             {
                 HideLine();
 
-                selectedTower.TowerBehaviour.UseCell(selectedCell.Value as Cell);
+                selectedTower.Behaviour.UseCell(selectedCell.Value as Cell);
                 MoveTowerTo(selectedCell.Value.transform.position);
 
                 onEndPlacingSuccess?.Invoke();
@@ -72,7 +72,7 @@ namespace TestTD
             canceledReplacing.Subscribe(_ =>
             {
                 HideLine();
-                MoveTowerTo(selectedTower.TowerBehaviour.Cell.transform.position);
+                MoveTowerTo(selectedTower.Behaviour.Cell.transform.position);
 
                 onEndPlacingCanceled?.Invoke();
             }).AddTo(this);
@@ -92,7 +92,7 @@ namespace TestTD
         public void StartReplacing()
         {
             state = State.Replacing;
-            previousUsedCell.SetCell(selectedTower.TowerBehaviour.Cell);
+            previousUsedCell.SetCell(selectedTower.Behaviour.Cell);
             previousUsedCell.Publish();
 
             ShowLine();

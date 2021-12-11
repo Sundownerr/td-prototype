@@ -15,8 +15,6 @@ namespace TestTD.Data
     [HideMonoScript]	
     public class LevelingData : ScriptableObject
     {
-        public  const int MaxLevelReached = -11;
-        
         [ListDrawerSettings(Expanded = true, DraggableItems = false)]
         [SerializeField] private float[] levelRequirements;
 

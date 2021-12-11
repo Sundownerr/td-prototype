@@ -35,13 +35,13 @@ namespace TestTD.UI
             image.sprite = element.Sprite;
 
             investButton.onClick.RemoveAllListeners();
-            investButton.onClick.AddListener((() =>
+            investButton.onClick.AddListener(() =>
             {
                 element.Invest();
                 onInvest?.Invoke(element);
 
                 canInvest = element.CanInvest;
-            }));
+            });
 
             SetLevel(element.Level);
             

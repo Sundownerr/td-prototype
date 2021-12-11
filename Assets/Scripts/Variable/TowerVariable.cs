@@ -9,9 +9,9 @@ namespace TestTD.Variables
     [Serializable]
     public class TowerVariable : CellObjectVariable
     {
-        [SerializeField] private TowerBehaviour towerBehaviour;
+        [SerializeField] private TowerBehaviour behaviour;
 
-        public TowerBehaviour TowerBehaviour => towerBehaviour;
+        public TowerBehaviour Behaviour => behaviour;
 
         public override void SetValue(GameObject value)
         {
@@ -23,7 +23,7 @@ namespace TestTD.Variables
 
         public void SetTowerBehaviour(TowerBehaviour towerBehaviour)
         {
-            this.towerBehaviour = towerBehaviour;
+            this.behaviour = towerBehaviour;
             SetCellObject(towerBehaviour);
         }
     }
