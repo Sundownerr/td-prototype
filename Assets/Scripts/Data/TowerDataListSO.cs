@@ -9,15 +9,12 @@ using UniRx;
 using Satisfy.Variables;
 using Satisfy.Attributes;
 
-namespace NMSPC
+namespace TestTD.Data
 {
+    [CreateAssetMenu(fileName = "TowerDataListSO", menuName = "Variables/Custom/Tower Data List")]
     [HideMonoScript]	
-    public class TowerDataListSO : MonoBehaviour
+    public class TowerDataListSO : ListSO<TowerData>
     {
-        void Start()
-        {
-            var update = Observable.EveryUpdate().Where(_ => enabled && gameObject.activeSelf);
-            
-        }
+      
     }
 }

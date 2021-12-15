@@ -11,12 +11,14 @@
 /dataSources.local.xml
 /Assets/Plugins/
 /Assets/ThirdParty/
+/Assets/Third Party/
 /Assets/3rdParty/
 /Assets/Voodoo/
 /Assets/ExternalDependencyManager/
 /Assets/Animation/
 /Assets/Models/
 /Assets/Sprites/
+/Assets/Materials/
 /Assets/Prefabs/
 /Assets/Prefab/
 /Assets/Satisfy/
@@ -28,6 +30,7 @@
 *.meta
 *.asset
 *.asset.meta
+*.zip
 # This .gitignore file should be placed at the root of your Unity project directory
 #
 # Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore

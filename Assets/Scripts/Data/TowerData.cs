@@ -1,103 +1,44 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Satisfy.Attributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace TestTD.Data
 {
     [HideMonoScript]
-    [CreateAssetMenu(fileName = "new-tower", menuName = "Data/Tower")]
+    [CreateAssetMenu(fileName = "Tower Data", menuName = "Data/Tower")]
     [Serializable]
     public class TowerData : ScriptableObject
     {
-        [BoxGroup("TowerSettings", false)] [SerializeField]
-        private Descriptor descriptor;
-        
-        [BoxGroup("TowerSettings", false)]
-        [SerializeField] private TowerElement element;
+        [SerializeField, Tweakable] private Descriptor descriptor;
+        [SerializeField, Tweakable] private TowerElement element;
+        [SerializeField, Tweakable] private GameObject prefab;
+        [SerializeField, Tweakable] private Sprite sprite;
 
-        [BoxGroup("TowerSettings", false)]
-        // [PreviewField(120, ObjectFieldAlignment.Right)]
-        // [HideLabel]
-        [SerializeField] private GameObject prefab;
+        [Space(10)]
 
-        [BoxGroup("TowerSettings", false)]
-        // [PreviewField(120, ObjectFieldAlignment.Right)]
-        // [HideLabel]
-        [SerializeField] private Sprite sprite;
-        
+        [SerializeField, Tweakable] private FloatParametersVariable defaultParameters;
+        [Button(ButtonSizes.Large), Tweakable]
+        private void ValidateParameters()
+        {
+            ParameterValidator.ValidateAndCorrect(parameters, defaultParameters);
+        }
+
+        [Space(10)]
+
+        [ListDrawerSettings(Expanded = true, ShowIndexLabels = false, DraggableItems = false)]
+        [SerializeField, Tweakable, PropertyOrder(100)]
+        private List<FloatParameter> parameters = new List<FloatParameter>();
+
         public GameObject Prefab => prefab;
         public Sprite Sprite => sprite;
         public TowerElement Element => element;
 
-        [ListDrawerSettings(Expanded = true, ShowIndexLabels = false, DraggableItems = false)]
-        [SerializeField]
-        private List<FloatParameter> parameters = new List<FloatParameter>();
-
         public float GetValue(FloatParameterSO data)
         {
             return parameters.Find(x => x.Data == data).GetValue();
-        }
-
-        [SerializeField, BoxGroup("Debug", false)] private TowerParametersVariable defaultTowerParameters;
-        
-        [Button(ButtonSizes.Large), BoxGroup("Debug", false)]
-        public void ValidateData()
-        {
-            var defaultParametersList = defaultTowerParameters.List;
-            var currentParametersDescriptors = parameters.Select(x => x.Data).ToList();
-
-            FillMissingParameters(defaultParametersList);
-            DeleteDuplicates();
-            DeleteInvalidElements();
-        }
-
-        private void DeleteInvalidElements()
-        {
-            for (var i = 0; i < parameters.Count; i++)
-            {
-                if (parameters[i] == null || parameters[i].Data == null)
-                {
-                    parameters.RemoveAt(i);
-                }
-            }
-        }
-
-        private void DeleteDuplicates()
-        {
-            for (var i = 0; i < parameters.Count; i++)
-            {
-               var sameParameters = parameters.FindAll(x => x.Data == parameters[i].Data);
-
-               if (sameParameters.Count == 1)
-                   continue;
-               
-               for (var k = sameParameters.Count - 1; k >= 1; k--)
-               {
-                   parameters.Remove(sameParameters[k]);
-               }
-            }
-        }
-        
-        private void FillMissingParameters(List<FloatParameter> defaultParametersList)
-        {
-            var missingParameters = new List<FloatParameter>();
-
-            foreach (var defaultParameter in defaultParametersList)
-            {
-               var matchingParameter = parameters.Find(x => x.Data == defaultParameter.Data);
-
-               if (matchingParameter == null)
-               {
-                   missingParameters.Add(defaultParameter);
-               }
-            }
-            
-            foreach (var x in missingParameters)
-            {
-                parameters.Add(x);
-            }
         }
     }
 }

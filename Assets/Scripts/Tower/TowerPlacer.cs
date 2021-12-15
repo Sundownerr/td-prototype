@@ -104,10 +104,10 @@ namespace TestTD
                 .Subscribe(_ =>
                 {
                     SelectedTowerRoot.position = Vector3.Lerp(SelectedTowerRoot.position,
-                                                              GetTargetPosition(),
+                                                              GetTargetPosition() + lineOffset,
                                                               Time.deltaTime * 25f);
 
-                    endPointLine.SetPosition(1, SelectedTowerRoot.position);
+                    endPointLine.SetPosition(1, SelectedTowerRoot.position + lineOffset);
                 }).AddTo(this);
 
             pointerDown.Published.Take(1)
