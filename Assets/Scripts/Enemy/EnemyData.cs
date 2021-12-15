@@ -11,12 +11,32 @@ using Satisfy.Attributes;
 
 namespace TestTD.Data
 {
+    [Serializable]
+    public class WavePrefabs
+    {
+        [HorizontalGroup("1")]
+        [HorizontalGroup("1/1")]
+        [SerializeField, LabelWidth(30), LabelText("From")] private int fromWave;
+        [HorizontalGroup("1/1")]
+        [SerializeField, LabelWidth(30), LabelText("To")] private int untilWave;
+
+        [HorizontalGroup("1/2")]
+        [ListDrawerSettings(Expanded = true, ShowIndexLabels = false, DraggableItems = false, ShowItemCount = false)]
+        [SerializeField] List<GameObject> prefabs;
+
+        public int UntilWave => untilWave;
+        public int FromWave => fromWave;
+        public IReadOnlyCollection<GameObject> Prefabs => prefabs;
+    }
+
     [Serializable, CreateAssetMenu(fileName = "Enemy Data", menuName = "Data/Enemy")]
     [HideMonoScript]
-    public class EnemyData : ScriptableObject
+    public class EnemyData : SerializedScriptableObject
     {
         [SerializeField, Tweakable] private Descriptor descriptor;
-        [SerializeField, Tweakable] private GameObject prefab;
+
+        [ListDrawerSettings(Expanded = true, ShowIndexLabels = false, ShowItemCount = false, DraggableItems = false)]
+        [SerializeField, Tweakable] private List<WavePrefabs> wavePrefabs;
 
         [Space(10)]
 

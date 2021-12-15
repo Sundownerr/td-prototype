@@ -18,7 +18,7 @@ namespace TestTD.UI
         [SerializeField, Tweakable] private UnityEvent onShow;
         [SerializeField, Tweakable] private UnityEvent onHide;
         private bool visible;
-        
+
         public virtual void Show()
         {
             onShow?.Invoke();
@@ -38,7 +38,7 @@ namespace TestTD.UI
                 Hide();
                 return;
             }
-            
+
             Show();
         }
     }
@@ -53,20 +53,20 @@ namespace TestTD.UI
         private void Start()
         {
             update = Observable.EveryUpdate().Where(_ => enabled && gameObject.activeSelf);
-            cam = mainCamera.Value.GetComponent<Camera>();
 
             Hide();
 
             update.Where(_ => selectedTower.Value != null)
                 .Subscribe(x =>
                 {
-                    content.position = cam.WorldToScreenPoint(selectedTower.Value.transform.position);
+                    content.position = GetCamera().WorldToScreenPoint(selectedTower.Value.transform.position);
                 }).AddTo(this);
 
             selectedTower.Changed.Select(x => x.Current)
                 .Where(x => x != null)
                 .Subscribe(_ =>
                 {
+                    content.position = GetCamera().WorldToScreenPoint(selectedTower.Value.transform.position);
                     Show();
                 }).AddTo(this);
 
@@ -76,6 +76,16 @@ namespace TestTD.UI
                 {
                     Hide();
                 }).AddTo(this);
+        }
+
+        Camera GetCamera()
+        {
+            if (cam == null)
+            {
+                cam = mainCamera.Value.GetComponent<Camera>();
+            }
+
+            return cam;
         }
     }
 }

@@ -10,12 +10,13 @@ using UniRx;
 using Satisfy.Attributes;
 using Satisfy.Variables;
 using TestTD.Variables;
+using Satisfy.Managers;
 
 namespace TestTD
 {
     public static class SourceTemplate
     {
-       
+
         [SourceTemplate]
         public static void suba<T>(this IObservable<T> x)
         { /*$
@@ -26,8 +27,10 @@ namespace TestTD
             */
         }
     }
-    
-    public class TowerPlacer : MonoBehaviour
+
+    [Serializable, CreateAssetMenu(fileName = "Tower Placer", menuName = "System/Tower Placer")]
+    [HideMonoScript]
+    public class TowerPlacer : ListenerSystem
     {
         private enum State
         {
@@ -39,24 +42,31 @@ namespace TestTD
         [SerializeField, Variable_R] private CellVariable highlightedCell;
         [SerializeField, Variable_R] private CellVariable selectedCell;
         [SerializeField, Variable_R] private CellVariable previousUsedCell;
-        [SerializeField, Editor_R] private LineRenderer endPointLine;
+        [SerializeField, Variable_R] private GameObjectVariable replaceLineGO;
         [SerializeField, Tweakable] private Vector3 lineOffset;
         [SerializeField, Tweakable] private UnityEvent onStartPlacing;
         [SerializeField, Tweakable] private UnityEvent onEndPlacingSuccess;
         [SerializeField, Tweakable] private UnityEvent onEndPlacingCanceled;
-        
+
         private readonly Subject<int> finishedReplacing = new Subject<int>();
         private readonly Subject<int> canceledReplacing = new Subject<int>();
+        private LineRenderer endPointLine;
 
-        private IObservable<long> update;
         private State state;
         private Transform SelectedTowerRoot => selectedTower.Value.Reference.transform;
 
-        private void Start()
+        public override void Initialize()
         {
-            update = Observable.EveryUpdate().Where(_ => enabled && gameObject.activeSelf);
+            base.Initialize();
 
-            endPointLine.gameObject.SetActive(false);
+            replaceLineGO.Changed.Select(x => x.Current)
+                .Subscribe(x =>
+                {
+                    endPointLine = x.GetComponent<LineRenderer>();
+                    endPointLine.gameObject.SetActive(false);
+                });
+
+
             HideLine();
 
             finishedReplacing.Subscribe(_ =>
@@ -67,7 +77,7 @@ namespace TestTD
                 MoveTowerTo(selectedCell.Value.transform.position);
 
                 onEndPlacingSuccess?.Invoke();
-            }).AddTo(this);
+            });
 
             canceledReplacing.Subscribe(_ =>
             {
@@ -75,24 +85,19 @@ namespace TestTD
                 MoveTowerTo(selectedTower.CellObject.Cell.transform.position);
 
                 onEndPlacingCanceled?.Invoke();
-            }).AddTo(this);
+            });
 
             finishedReplacing.Merge(canceledReplacing)
                 .Subscribe(_ =>
                 {
                     state = State.Waiting;
-                }).AddTo(this);
-
-            update.Where(_ => true).Subscribe(_ =>
-            {
-                
-            }).AddTo(this);
+                });
         }
 
         public void StartReplacing()
         {
             state = State.Replacing;
-        
+
             previousUsedCell.SetCell(selectedTower.CellObject.Cell);
             previousUsedCell.Publish();
 
@@ -100,7 +105,7 @@ namespace TestTD
 
             onStartPlacing?.Invoke();
 
-            update.TakeUntil(finishedReplacing.Merge(canceledReplacing))
+            Observable.EveryUpdate().TakeUntil(finishedReplacing.Merge(canceledReplacing))
                 .Subscribe(_ =>
                 {
                     SelectedTowerRoot.position = Vector3.Lerp(SelectedTowerRoot.position,
@@ -108,14 +113,14 @@ namespace TestTD
                                                               Time.deltaTime * 25f);
 
                     endPointLine.SetPosition(1, SelectedTowerRoot.position + lineOffset);
-                }).AddTo(this);
+                });
 
             pointerDown.Published.Take(1)
                 .TakeUntil(canceledReplacing)
                 .Subscribe(_ =>
                 {
                     finishedReplacing.OnNext(1);
-                }).AddTo(this);
+                });
 
             var a = new int[5];
         }
@@ -156,7 +161,7 @@ namespace TestTD
             endPointLine.gameObject.SetActive(true);
             DOTween.To(() => endPointLine.widthMultiplier, val => { endPointLine.widthMultiplier = val; }, 1, 0.2f);
 
-           
+
         }
 
         private void HideLine()

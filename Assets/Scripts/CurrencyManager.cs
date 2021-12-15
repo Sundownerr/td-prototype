@@ -14,8 +14,9 @@ using TestTD.Variables;
 
 namespace TestTD.Systems
 {
-    [HideMonoScript]	
-    public class CurrencyManager : MonoBehaviour
+    [Serializable, CreateAssetMenu(fileName = "Currency Manager", menuName = "System/Currency Manager")]
+    [HideMonoScript]
+    public class CurrencyManager : ListenerSystem
     {
         [SerializeField, Variable_R] private FloatParameterSO towerCost;
         [SerializeField, Variable_R] private FloatParameterSO towerLimitRequirement;
@@ -29,22 +30,27 @@ namespace TestTD.Systems
 
         private float GetTowerCost(TowerData data) => data.GetValue(towerCost);
 
+        public override void Initialize()
+        {
+            base.Initialize();
+        }
+
         public void HandleTowerBuild(TowerDataVariable dataVariable) =>
             HandleTowerBuild(dataVariable.Value);
 
         private void HandleTowerBuild(TowerData data)
         {
-            towerBuildCurrency.DecreaseBy((int) GetTowerCost(data));
-            towerCurrentLimit.DecreaseBy((int) data.GetValue(towerLimitRequirement));
+            towerBuildCurrency.DecreaseBy((int)GetTowerCost(data));
+            towerCurrentLimit.DecreaseBy((int)data.GetValue(towerLimitRequirement));
         }
-        
+
         public void HandleTowerSold(TowerDataVariable dataVariable) =>
             HandleTowerSold(dataVariable.Value);
-        
+
         private void HandleTowerSold(TowerData data)
         {
-            towerBuildCurrency.IncreaseBy((int) (GetTowerCost(data) * costRefundPercent.Value));
-            towerCurrentLimit.IncreaseBy((int) data.GetValue(towerLimitRequirement));
+            towerBuildCurrency.IncreaseBy((int)(GetTowerCost(data) * costRefundPercent.Value));
+            towerCurrentLimit.IncreaseBy((int)data.GetValue(towerLimitRequirement));
         }
 
         public bool CheckCanBuy(TowerData data)
@@ -65,7 +71,7 @@ namespace TestTD.Systems
                 onNotEnoughLimit?.Invoke();
                 return false;
             }
-            
+
             return true;
         }
     }

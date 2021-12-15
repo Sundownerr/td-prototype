@@ -10,11 +10,13 @@ using UniRx;
 using Satisfy.Variables;
 using Satisfy.Attributes;
 using TestTD.Data;
+using Satisfy.Managers;
 
 namespace TestTD.Systems
 {
-    [HideMonoScript]	
-    public class TowerGenerator : MonoBehaviour
+    [Serializable, CreateAssetMenu(fileName = "Tower Generator", menuName = "System/Tower Generator")]
+    [HideMonoScript]
+    public class TowerGenerator : ScriptableObjectSystem
     {
         [SerializeField, Variable_R] private IntVariable currentWave;
         [SerializeField, Variable_R] private FloatParameterSO waveRequirement;
@@ -32,13 +34,18 @@ namespace TestTD.Systems
                 .Where(tower => tower.GetValue(waveRequirement) >= currentWave.Value);
 
             // Debug.Log($"Adding {matchingTowers.Count()}");
-            
+
             foreach (var matchingTower in matchingTowers)
             {
                 availableTowers.AddExisting(matchingTower);
-                
+
                 // Debug.Log($"Add tower {matchingTower.name}");
             }
+        }
+
+        public override void Initialize()
+        {
+            // throw new NotImplementedException();
         }
     }
 }

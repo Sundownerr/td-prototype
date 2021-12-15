@@ -9,27 +9,39 @@ using UniRx;
 using Satisfy.Variables;
 using Satisfy.Attributes;
 using TestTD.Variables;
+using Satisfy.Managers;
 
 namespace TestTD
 {
     [Serializable]
-    public class CellObjectEvent : UnityEvent<CellObject>{ }
-    
+    public class CellObjectEvent : UnityEvent<CellObject> { }
+
+    [Serializable, CreateAssetMenu(fileName = "Tower Builder", menuName = "System/Tower Builder")]
     [HideMonoScript]
-    public class TowerBuilder : MonoBehaviour
+    public class TowerBuilder : ListenerSystem
     {
+        [SerializeField, Variable_R] private GameObjectVariable towerParent;
         [SerializeField, Variable_R] private CellVariable selectedCell;
         [SerializeField, Tweakable] private CellObjectEvent onTowerBuilded;
+
+        public override void Initialize()
+        {
+            base.Initialize();
+        }
 
         public void BuildTower(TowerDataVariable towerData)
         {
             var buildPosition = selectedCell.Value.transform.position;
-            
-            var cellObject = InstantiateTower(towerData.Value.Prefab, buildPosition)
-                .GetComponentInChildren<CellObject>();
+
+            var tower = Instantiate(towerData.Value.Prefab,
+                                    buildPosition,
+                                    Quaternion.identity,
+                                    towerParent.Value.transform);
+
+            var cellObject = tower.GetComponentInChildren<CellObject>();
 
             cellObject.UseCell(selectedCell.Cell);
-         
+
             onTowerBuilded?.Invoke(cellObject);
         }
 
@@ -38,16 +50,7 @@ namespace TestTD
             Destroy(towerBehaviour.Reference);
         }
 
-        public void DestroyTower(CellObjectVariable towerVariable) => DestroyTower(towerVariable.CellObject);
-
-        private GameObject InstantiateTower(GameObject prefab, Vector3 position)
-        {
-           
-            var tower = Instantiate(prefab, position, Quaternion.identity);
-
-            tower.transform.parent = transform;
-
-            return tower;
-        }
+        public void DestroyTower(CellObjectVariable towerVariable) =>
+            DestroyTower(towerVariable.CellObject);
     }
 }

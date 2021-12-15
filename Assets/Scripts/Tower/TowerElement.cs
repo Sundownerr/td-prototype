@@ -12,15 +12,15 @@ using Satisfy.Attributes;
 namespace TestTD.Data
 {
     [CreateAssetMenu(fileName = "TowerElement", menuName = "Data/Tower element")]
-    [HideMonoScript]	
+    [HideMonoScript]
     public class TowerElement : ScriptableObject
     {
         [SerializeField] private Descriptor descriptor;
         [SerializeField] private Sprite sprite;
         [SerializeField] private int level;
         [SerializeField] private int investedPoints;
-        [SerializeField,InlineEditor] private LevelingData levelingData;
-        
+        [SerializeField, InlineEditor] private LevelingData levelingData;
+
         public Sprite Sprite => sprite;
         public int Level => level;
         public int InvestedPoints => investedPoints;
@@ -33,7 +33,7 @@ namespace TestTD.Data
 
             if (!canLevelUp)
                 return;
-            
+
             investedPoints++;
 
             if (investedPoints >= neededExp)
@@ -43,13 +43,10 @@ namespace TestTD.Data
             }
         }
 
-    
-        
         public void ResetValues()
         {
             level = 0;
             investedPoints = 0;
         }
-        
     }
 }
