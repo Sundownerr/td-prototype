@@ -12,7 +12,19 @@ using Satisfy.Attributes;
 namespace TestTD.Data
 {
     [Serializable]
-    public class WavePrefabs
+    public class GroupPrefabs
+    {
+        [SerializeField, HideLabel] Variable group;
+
+        [ListDrawerSettings(Expanded = true, ShowIndexLabels = false, DraggableItems = false, ShowItemCount = false)]
+        [SerializeField] List<GameObjectList> prefabs;
+
+        public Variable Group => group;
+        public IReadOnlyCollection<GameObjectList> Prefabs => prefabs;
+    }
+
+    [Serializable]
+    public class WaveSettings
     {
         [HorizontalGroup("1")]
         [HorizontalGroup("1/1")]
@@ -22,11 +34,11 @@ namespace TestTD.Data
 
         [HorizontalGroup("1/2")]
         [ListDrawerSettings(Expanded = true, ShowIndexLabels = false, DraggableItems = false, ShowItemCount = false)]
-        [SerializeField] List<GameObject> prefabs;
+        [SerializeField] private List<GroupPrefabs> groups;
 
         public int UntilWave => untilWave;
         public int FromWave => fromWave;
-        public IReadOnlyCollection<GameObject> Prefabs => prefabs;
+        public IReadOnlyCollection<GroupPrefabs> Groups => groups;
     }
 
     [Serializable, CreateAssetMenu(fileName = "Enemy Data", menuName = "Data/Enemy")]
@@ -36,28 +48,21 @@ namespace TestTD.Data
         [SerializeField, Tweakable] private Descriptor descriptor;
 
         [ListDrawerSettings(Expanded = true, ShowIndexLabels = false, ShowItemCount = false, DraggableItems = false)]
-        [SerializeField, Tweakable] private List<WavePrefabs> wavePrefabs;
+        [SerializeField, Tweakable] private List<WaveSettings> wavePrefabs;
 
-        [Space(10)]
-
-        [SerializeField, Tweakable] private FloatParametersVariable defaultParameters;
-        [Button(ButtonSizes.Large), Tweakable]
-        private void ValidateParameters()
-        {
-            ParameterValidator.ValidateAndCorrect(parameters, defaultParameters);
-        }
-
-        [Space(10)]
-
-        [ListDrawerSettings(Expanded = true, ShowIndexLabels = false, DraggableItems = false)]
-        [SerializeField, Tweakable, PropertyOrder(100)]
-        private List<FloatParameter> parameters = new List<FloatParameter>();
+        [SerializeField, Tweakable] EnemyParameters parameters;
 
         public Descriptor Descriptor => descriptor;
+        public EnemyParameters Parameters => parameters;
+        public IReadOnlyCollection<WaveSettings> WavePrefabs => wavePrefabs;
 
-        public float GetValue(FloatParameterSO data)
+        [Button]
+        public void ToJson()
         {
-            return parameters.Find(x => x.Data == data).GetValue();
+            var file = JsonUtility.ToJson(this, true);
+            System.IO.File.WriteAllText(Application.dataPath + "/playerData.json", file);
+            System.IO.File.Open(System.IO.Path.Combine(Application.dataPath, "/playerData.json"),
+                                System.IO.FileMode.Open);
         }
     }
 }

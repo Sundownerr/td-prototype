@@ -24,7 +24,17 @@ namespace TestTD.Data
         [SerializeField, LabelWidth(70), LabelText("Description"), Multiline]
         private string objectDescription;
 
+        [SerializeField, ReadOnly]
+        private int id;
+
         public string Name => objectName;
         public string Description => objectDescription;
+
+#if UNITY_EDITOR
+        void OnValidate()
+        {
+            id = this.GetInstanceID();
+        }
+#endif
     }
 }

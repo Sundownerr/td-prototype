@@ -16,7 +16,7 @@ namespace TestTD
 {
     [Serializable]
     public class TowerDataEvent : UnityEvent<TowerData> { }
-    
+
     [HideMonoScript]
     public class TowerManager : MonoBehaviour
     {
@@ -24,7 +24,7 @@ namespace TestTD
         [SerializeField, Variable_R] private CellVariable selectedCell;
         [SerializeField, Editor_R] private CurrencyManager currencyManager;
         [SerializeField, Tweakable] private TowerDataEvent onTowerSold;
-        
+
         private readonly Dictionary<CellObject, TowerData> towers = new Dictionary<CellObject, TowerData>();
         private TowerData lastBuildTowerData;
 
@@ -35,8 +35,8 @@ namespace TestTD
 
             if (selectedCell.Cell.IsUsed)
                 return;
-            
-            if (!currencyManager.CheckCanBuy(data))
+
+            if (!currencyManager.CheckCanBuy(data.Parameters))
                 return;
 
             lastBuildTowerData = data;

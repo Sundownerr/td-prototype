@@ -14,16 +14,10 @@ namespace TestTD.Data
     [Serializable]
     public class FloatParameter
     {
-        [HorizontalGroup("parameter")]
-        [SerializeField, HideLabel, HideInInlineEditors]
-        private FloatParameterSO data;
-
-        [HorizontalGroup("parameter")]
         [SerializeField, HideLabel]
         private float baseValue;
 
         private readonly List<FloatModifier> modifiers = new List<FloatModifier>();
-        public FloatParameterSO Data => data;
 
         public void Add(FloatModifier modifier)
         {
@@ -35,39 +29,42 @@ namespace TestTD.Data
             modifiers.Remove(modifier);
         }
 
-        public float GetValue()
+        public float Value
         {
-            var finalValue = baseValue;
-            var totalAddedPercent = 0f;
-
-            for (int i = 0; i < modifiers.Count; i++)
+            get
             {
-                var modifier = modifiers[i];
+                var finalValue = baseValue;
+                var totalAddedPercent = 0f;
 
-
-                if (modifier.Type == ModifyType.Flat)
+                for (int i = 0; i < modifiers.Count; i++)
                 {
-                    finalValue += modifier.Value;
-                }
+                    var modifier = modifiers[i];
 
-                if (modifier.Type == ModifyType.PercentAdd)
-                {
-                    totalAddedPercent += modifier.Value;
 
-                    if (i + 1 >= modifiers.Count || modifiers[i + 1].Type != ModifyType.PercentAdd)
+                    if (modifier.Type == ModifyType.Flat)
                     {
-                        finalValue *= 1 + totalAddedPercent;
-                        totalAddedPercent = 0;
+                        finalValue += modifier.Value;
+                    }
+
+                    if (modifier.Type == ModifyType.PercentAdd)
+                    {
+                        totalAddedPercent += modifier.Value;
+
+                        if (i + 1 >= modifiers.Count || modifiers[i + 1].Type != ModifyType.PercentAdd)
+                        {
+                            finalValue *= 1 + totalAddedPercent;
+                            totalAddedPercent = 0;
+                        }
+                    }
+
+                    if (modifier.Type == ModifyType.PercentMultiply)
+                    {
+                        finalValue *= 1 + modifier.Value;
                     }
                 }
 
-                if (modifier.Type == ModifyType.PercentMultiply)
-                {
-                    finalValue *= 1 + modifier.Value;
-                }
+                return (float)Math.Round(finalValue, 1);
             }
-
-            return (float)Math.Round(finalValue, 1);
         }
     }
 }

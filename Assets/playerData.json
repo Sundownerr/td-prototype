@@ -1,0 +1,24 @@
+{
+    "Item1": 20624,
+    "Item2": "ds-fire-tower",
+    "Item3": {
+        "attackDamage": {
+            "baseValue": 0.0
+        },
+        "attackSpeed": {
+            "baseValue": 0.0
+        },
+        "buildCost": {
+            "baseValue": 0.0
+        },
+        "towerLimitRequirement": {
+            "baseValue": 5.0
+        },
+        "waveRequirement": {
+            "baseValue": 5.0
+        },
+        "elementLevelRequirement": {
+            "baseValue": 3.0
+        }
+    }
+}

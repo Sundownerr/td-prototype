@@ -12,23 +12,20 @@ using Satisfy.Attributes;
 namespace TestTD.Data
 {
     [CreateAssetMenu(fileName = "LevelingData", menuName = "Data/Leveling data")]
-    [HideMonoScript]	
+    [HideMonoScript]
     public class LevelingData : ScriptableObject
     {
         [ListDrawerSettings(Expanded = true, DraggableItems = false)]
         [SerializeField] private float[] levelRequirements;
 
-        public bool TryGetNeededExp(int level, out float requiredExp)
+        public int MaxLevel => levelRequirements.Length;
+
+        public float GetExpForLevel(int level)
         {
-            requiredExp = 0;
-            
-            if (!IsLevelValid(level))
-                return false;
+            if (level >= MaxLevel - 1)
+                return 0;
 
-            requiredExp = levelRequirements[level];
-            return true;
+            return levelRequirements[level];
         }
-
-        public bool IsLevelValid(int level) => level <= levelRequirements.Length - 1;
     }
 }

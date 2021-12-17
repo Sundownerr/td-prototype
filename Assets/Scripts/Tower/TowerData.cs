@@ -16,29 +16,24 @@ namespace TestTD.Data
         [SerializeField, Tweakable] private TowerElement element;
         [SerializeField, Tweakable] private GameObject prefab;
         [SerializeField, Tweakable] private Sprite sprite;
-
-        [Space(10)]
-
-        [SerializeField, Tweakable] private FloatParametersVariable defaultParameters;
-        [Button(ButtonSizes.Large), Tweakable]
-        private void ValidateParameters()
-        {
-            ParameterValidator.ValidateAndCorrect(parameters, defaultParameters);
-        }
-
-        [Space(10)]
-
-        [ListDrawerSettings(Expanded = true, ShowIndexLabels = false, DraggableItems = false)]
-        [SerializeField, Tweakable, PropertyOrder(100)]
-        private List<FloatParameter> parameters = new List<FloatParameter>();
+        [SerializeField, Tweakable] private TowerParameters parameters;
 
         public GameObject Prefab => prefab;
         public Sprite Sprite => sprite;
         public TowerElement Element => element;
+        public TowerParameters Parameters => parameters;
 
-        public float GetValue(FloatParameterSO data)
+
+        [Button]
+        public void ToJson()
         {
-            return parameters.Find(x => x.Data == data).GetValue();
+            (int id, string name, TowerParameters parameters) data =
+                (descriptor.GetInstanceID(), descriptor.name, parameters);
+
+            var file = JsonUtility.ToJson(data, true);
+            System.IO.File.WriteAllText(Application.dataPath + "/playerData.json", file);
+            System.IO.File.Open(System.IO.Path.Combine(Application.dataPath, "/playerData.json"),
+                                System.IO.FileMode.Open);
         }
     }
 }

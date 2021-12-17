@@ -28,34 +28,32 @@ namespace TestTD.Systems
         [SerializeField, Tweakable] private UnityEvent onNotEnoughMoney;
         [SerializeField, Tweakable] private UnityEvent onNotEnoughLimit;
 
-        private float GetTowerCost(TowerData data) => data.GetValue(towerCost);
-
         public override void Initialize()
         {
             base.Initialize();
         }
 
         public void HandleTowerBuild(TowerDataVariable dataVariable) =>
-            HandleTowerBuild(dataVariable.Value);
+            HandleTowerBuild(dataVariable.Value.Parameters);
 
-        private void HandleTowerBuild(TowerData data)
+        private void HandleTowerBuild(TowerParameters parameters)
         {
-            towerBuildCurrency.DecreaseBy((int)GetTowerCost(data));
-            towerCurrentLimit.DecreaseBy((int)data.GetValue(towerLimitRequirement));
+            towerBuildCurrency.DecreaseBy((int)parameters.BuildCost.Value);
+            towerCurrentLimit.DecreaseBy((int)parameters.TowerLimitRequirement.Value);
         }
 
         public void HandleTowerSold(TowerDataVariable dataVariable) =>
-            HandleTowerSold(dataVariable.Value);
+            HandleTowerSold(dataVariable.Value.Parameters);
 
-        private void HandleTowerSold(TowerData data)
+        private void HandleTowerSold(TowerParameters parameters)
         {
-            towerBuildCurrency.IncreaseBy((int)(GetTowerCost(data) * costRefundPercent.Value));
-            towerCurrentLimit.IncreaseBy((int)data.GetValue(towerLimitRequirement));
+            towerBuildCurrency.IncreaseBy((int)(parameters.BuildCost.Value * costRefundPercent.Value));
+            towerCurrentLimit.IncreaseBy((int)parameters.TowerLimitRequirement.Value);
         }
 
-        public bool CheckCanBuy(TowerData data)
+        public bool CheckCanBuy(TowerParameters parameters)
         {
-            var haveMoney = GetTowerCost(data) <= towerBuildCurrency.Value;
+            var haveMoney = parameters.BuildCost.Value <= towerBuildCurrency.Value;
 
             if (!haveMoney)
             {
@@ -63,7 +61,7 @@ namespace TestTD.Systems
                 return false;
             }
 
-            var limitRequirement = data.GetValue(towerLimitRequirement);
+            var limitRequirement = parameters.TowerLimitRequirement.Value;
             var haveLimit = towerCurrentLimit.Value - limitRequirement >= 0;
 
             if (!haveLimit)

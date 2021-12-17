@@ -27,11 +27,11 @@ namespace TestTD.Systems
         [Button]
         public void Generate()
         {
-            var leveledElements = elements.List.Where(x => x.Level > 0);
+            var leveledElements = elements.List.Where(x => x.Level.Value > 0);
 
             var matchingTowers = towers.List
                 .Where(tower => leveledElements.Any(e => tower.Element == e))
-                .Where(tower => tower.GetValue(waveRequirement) >= currentWave.Value);
+                .Where(tower => tower.Parameters.WaveRequirement.Value >= currentWave.Value);
 
             // Debug.Log($"Adding {matchingTowers.Count()}");
 

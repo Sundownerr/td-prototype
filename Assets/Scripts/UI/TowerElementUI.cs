@@ -15,9 +15,9 @@ using UnityEngine.UI;
 namespace TestTD.UI
 {
     [Serializable]
-    public class  TowerElementEvent : UnityEvent<TowerElement> {}
-    
-    [HideMonoScript]	
+    public class TowerElementEvent : UnityEvent<TowerElement> { }
+
+    [HideMonoScript]
     public class TowerElementUI : MonoBehaviour
     {
         [SerializeField] private Image image;
@@ -31,7 +31,7 @@ namespace TestTD.UI
         public void SetElement(TowerElement element)
         {
             elementChanged.OnNext(1);
-            
+
             image.sprite = element.Sprite;
 
             investButton.onClick.RemoveAllListeners();
@@ -40,17 +40,17 @@ namespace TestTD.UI
                 element.Invest();
                 onInvest?.Invoke(element);
 
-                canInvest = element.CanInvest;
+                canInvest = element.Level.CanLevelUp;
             });
 
-            SetLevel(element.Level);
-            
-            element.ObserveEveryValueChanged(x => x.Level)
+            SetLevel(element.Level.Value);
+
+            element.Level.Changed
                 .TakeUntil(elementChanged)
                 .Subscribe(SetLevel).AddTo(this);
 
             this.ObserveEveryValueChanged(x => x.canInvest)
-                .Where(x => x== false).Subscribe(_ =>
+                .Where(x => x == false).Subscribe(_ =>
                 {
                     DisableInvest();
                 }).AddTo(this);
@@ -65,7 +65,7 @@ namespace TestTD.UI
         {
             if (!canInvest)
                 return;
-            
+
             investButton.gameObject.SetActive(true);
         }
 
@@ -73,7 +73,7 @@ namespace TestTD.UI
         {
             investButton.gameObject.SetActive(false);
         }
-        
+
         private void OnDestroy()
         {
             investButton.onClick.RemoveAllListeners();
