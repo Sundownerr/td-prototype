@@ -2,29 +2,36 @@ using System;
 using UnityEngine;
 using Sirenix.OdinInspector;
 using UniRx;
+using Satisfy.Utility;
 
 namespace TestTD.Data
 {
     [Serializable]
     public class Level
     {
-        [SerializeField, InlineProperty] private IntMemo value;
-        [SerializeField, InlineProperty] private FloatMemo exp;
-        [SerializeField] private LevelingData levelingData;
+        [SerializeField, LabelWidth(60), InlineProperty, HideInEditorMode] private Memo<int> value;
+        [SerializeField, LabelWidth(60), InlineProperty, HideInEditorMode] private Memo<float> exp;
+        [SerializeField, LabelWidth(110)] private LevelingData levelingData;
 
-        public IObservable<float> ExpChanged => exp.ObserveEveryValueChanged(x => x.Current);
-        public Subject<float> ExpIncreased { get; } = new Subject<float>();
-        public Subject<float> ExpDecreased { get; } = new Subject<float>();
+        public IObservable<float> ExpChanged => exp.Changed;
+        public IObservable<float> ExpIncreased => ExpChanged.Where(x => x > exp.Previous);
+        public IObservable<float> ExpDecreased => ExpChanged.Where(x => x < exp.Previous);
 
-        public IObservable<int> Changed => value.ObserveEveryValueChanged(x => x.Current);
-        public Subject<int> Increased { get; } = new Subject<int>();
-        public Subject<int> Decreased { get; } = new Subject<int>();
+        public IObservable<int> Changed => value.Changed;
+        public IObservable<int> Increased => Changed.Where(x => x > exp.Previous);
+        public IObservable<int> Decreased => Changed.Where(x => x < exp.Previous);
 
         public Level(LevelingData levelingData)
         {
-            this.value = new IntMemo(0);
-            this.exp = new FloatMemo(0);
+            this.value = new Memo<int>(0);
+            this.exp = new Memo<float>(0);
             this.levelingData = levelingData;
+        }
+
+        public Level()
+        {
+            this.value = new Memo<int>(0);
+            this.exp = new Memo<float>(0);
         }
 
         public int Value => value.Current + 1;
@@ -65,7 +72,6 @@ namespace TestTD.Data
             }
 
             ChangeExp(expValue);
-            ExpIncreased.OnNext(expValue);
         }
 
         public void RemoveExp(float expValue)
@@ -80,7 +86,7 @@ namespace TestTD.Data
             }
 
             ChangeExp(expValue);
-            ExpDecreased.OnNext(expValue);
+
         }
 
         private void ChangeExp(float offset)
@@ -94,7 +100,6 @@ namespace TestTD.Data
                 value.Current = Mathf.Min(value.Current + 1, levelingData.MaxLevel);
                 exp.Current = exp.Current - expToLevelUp;
 
-                Increased.OnNext(1);
                 return;
             }
 
@@ -102,8 +107,6 @@ namespace TestTD.Data
             {
                 value.Current = Mathf.Max(value.Current - 1, 0);
                 exp.Current = levelingData.GetExpForLevel(value.Current) + exp.Current;
-
-                Decreased.OnNext(-1);
             }
         }
     }

@@ -29,7 +29,8 @@ namespace TestTD
          HorizontalGroup("tweakable/1"), HideLabel]
         private Camera rayCamera;
 
-        [PropertySpace(10)] [SerializeField, BoxGroup("tweakable", false)]
+        [PropertySpace(10)]
+        [SerializeField, BoxGroup("tweakable", false)]
         private LayerMask layerMask;
 
         [SerializeField, BoxGroup("tweakable", false)]
@@ -38,13 +39,15 @@ namespace TestTD
         [SerializeField, BoxGroup("tweakable", false)]
         private QueryTriggerInteraction triggerInteraction;
 
-        [PropertySpace(10)] [SerializeField, BoxGroup("tweakable", false)]
+        [PropertySpace(10)]
+        [SerializeField, BoxGroup("tweakable", false)]
         private bool retainLastHitObject;
 
         [SerializeField, BoxGroup("tweakable", false)]
         private bool ignoreGUI = false;
 
-        [PropertySpace(10)] [SerializeField, BoxGroup("tweakable", false)]
+        [PropertySpace(10)]
+        [SerializeField, BoxGroup("tweakable", false)]
         private GameObjectEvent onHit;
 
         [SerializeField, BoxGroup("tweakable", false)]
@@ -59,6 +62,7 @@ namespace TestTD
         private bool isObjectLost;
 
         private RaycastHit castResult => fromCameraToPointer ? CastRayFromCamera() : CastRayFromStartPoint();
+        private RaycastHit[] results = new RaycastHit[1];
 
         private void Start()
         {
@@ -82,14 +86,14 @@ namespace TestTD
 
         private RaycastHit CastRay(Vector3 origin, Vector3 direction)
         {
-            Physics.Raycast(origin,
+            var hits = Physics.RaycastNonAlloc(origin,
                 direction,
-                out var hitInfo,
+                results,
                 maxDistance,
                 layerMask,
                 triggerInteraction);
 
-            return hitInfo;
+            return hits > 0 ? results[0] : default;
         }
 
         private RaycastHit CastRayFromCamera()
@@ -110,7 +114,7 @@ namespace TestTD
                 HandleHitObjectLost();
                 return;
             }
-            
+
             if (nextHitObject != null && nextHitObject.transform == obj)
                 return;
 

@@ -16,69 +16,49 @@ namespace TestTD.Entities
     public class EnemyBehaviour : MonoBehaviour
     {
         [SerializeField, Editor_R] private CinemachinePathFollower follower;
+        [SerializeField, HideInEditorMode] private EnemyData data;
+        [SerializeField, HideInEditorMode] private Health health;
 
-        private EnemyData data;
-        private Health health;
+        [SerializeField, Tweakable] UnityEvent onReachedPlayer;
+        [SerializeField, Tweakable] UnityEvent onDead;
+        [SerializeField, Tweakable] UnityEvent onDamaged;
+        [SerializeField, Tweakable] UnityEvent onHealed;
 
-        public void SetData(EnemyData data)
+        public IObservable<float> ReachedPlayer => follower.ReachedEnd.Take(1);
+        public Health Health => health;
+
+        public void SetData(EnemyData value)
         {
-            this.data = data;
+            data = Instantiate(value);
 
-            follower.m_Speed = data.Parameters.Speed.Value;
+            HandleFollower();
+            HandleHealth();
+        }
+
+        private void HandleHealth()
+        {
             health = new Health(data.Parameters.Health.Value);
+
+            health.Damaged.Subscribe(_ => { onDead?.Invoke(); }).AddTo(this);
+            health.Healed.Subscribe(_ => { onHealed?.Invoke(); }).AddTo(this);
+            health.Dead.Subscribe(_ => { onDead?.Invoke(); }).AddTo(this);
         }
 
-        private void Start()
+        private void HandleFollower()
         {
+            follower.m_Speed = data.Parameters.Speed.Value;
 
-        }
-    }
+            ReachedPlayer.Subscribe(_ =>
+            {
+                onReachedPlayer?.Invoke();
+                Destroy(gameObject, 0.3f);
+            }).AddTo(this);
 
-    public class Health
-    {
-        private float current;
-        private float previous;
-        private float max;
-
-        public IObservable<float> Healed => currentHealthChanged.Where(x => x > previous);
-        public IObservable<float> Damaged => currentHealthChanged.Where(x => x < previous);
-        public IObservable<float> Dead => Damaged.Where(x => Mathf.Approximately(x, 0));
-        public IObservable<float> FullHealed => Healed.Where(x => Mathf.Approximately(x, max));
-        public IObservable<float> HalfHealed => Healed.Where(x => Mathf.Approximately(x, max / 2f));
-        public IObservable<float> HalfDead => Damaged.Where(x => Mathf.Approximately(x, max / 2f));
-
-        IObservable<float> currentHealthChanged => this.ObserveEveryValueChanged(x => x.current);
-
-        public Health(float current)
-        {
-            this.current = current;
-            this.max = current;
-            previous = current;
-        }
-
-        public Health(float current, float max)
-        {
-            this.current = current;
-            this.max = max;
-            previous = current;
-        }
-
-        public void Heal(float value)
-        {
-            if (value <= 0)
-                return;
-
-            previous = current;
-            current += value;
-        }
-
-        public void Damage(float value)
-        {
-            if (value >= 0)
-                return;
-
-            previous = current;
-            current -= value;
+            data.Parameters.ObserveEveryValueChanged(x => x.Speed.Value)
+                .Subscribe(x =>
+                {
+                    follower.m_Speed = x;
+                }).AddTo(this);
         }
     }
 }

@@ -11,33 +11,83 @@ using Satisfy.Attributes;
 using TestTD.Data;
 using System.Linq;
 using TestTD.Entities;
+using Satisfy.Managers;
+using Cysharp.Threading.Tasks;
 
 namespace TestTD.Systems
 {
+    [Serializable, CreateAssetMenu(fileName = "Enemy Manager", menuName = "System/Enemy Manager")]
     [HideMonoScript]
-    public class EnemyManager : MonoBehaviour
+    public class EnemyManager : ListenerSystem
     {
-        [SerializeField, Editor_R] Transform spawnPoint;
+        [SerializeField, Variable_R] private IntVariable currentWave;
+        [SerializeField, Variable_R] private FloatVariable damageToPlayer;
+        [SerializeField, Variable_R] private GameObjectVariable spawnPoint;
+        [SerializeField, Tweakable] private UnityEvent onAllWavesCompleted;
+
+        private List<WaveSO> waves = new List<WaveSO>();
+
+        public override void Initialize()
+        {
+            base.Initialize();
+        }
 
         [Button]
-        public void SpawnWave(WaveSO wave)
+        public void SpawnNextWave()
         {
-            var index = 0;
+            if (currentWave.Value > waves.Count - 1)
+            {
+                onAllWavesCompleted?.Invoke();
+                return;
+            }
 
-            Observable.Interval(TimeSpan.FromSeconds(0.4f))
-                .Take(wave.Enemies.Count)
-                .Select(x => wave.Enemies[index])
-                .Subscribe(enemy =>
-                {
-                    var prefab = enemy.WavePrefabs.First().Groups.First().Prefabs.First().List[0];
-                    var spawnedEnemy = Instantiate(prefab, spawnPoint.position, Quaternion.identity, spawnPoint)
-                        .GetComponent<EnemyBehaviour>();
+            SpawnWave(waves[currentWave.Value]);
 
-                    spawnedEnemy.SetData(enemy);
+            currentWave.IncreaseBy(1);
+        }
 
-                    index++;
-                }).AddTo(this);
+        public void SetWaves(WaveListSO wavesSO)
+        {
+            waves = wavesSO.List;
+        }
 
+        [Button]
+        public async void SpawnWave(WaveSO wave)
+        {
+            foreach (var enemy in wave.Enemies)
+            {
+                Create(enemy);
+                await UniTask.Delay(400);
+            }
+        }
+
+        private void Create(EnemyData data)
+        {
+            var prefab = data.WavePrefabs.First().Groups.First().Prefabs.First().List[0];
+
+            var spawnedEnemy = Instantiate(prefab,
+                                           spawnPoint.Value.transform.position,
+                                           Quaternion.identity,
+                                           spawnPoint.Value.transform)
+                .GetComponent<EnemyBehaviour>();
+
+            spawnedEnemy.SetData(data);
+
+            // Observable.IntervalFrame(1).Take(1).Subscribe(_ =>
+            // {
+            spawnedEnemy.ReachedPlayer.Subscribe(_ =>
+            {
+                var damage = GetDamageToPlayer(spawnedEnemy.Health, data.Parameters.DamageToPlayer.Value);
+                damageToPlayer.SetValueAndPublish(damage);
+            });
+            // });
+        }
+
+        private float GetDamageToPlayer(Health health, float defaultDamage)
+        {
+            var remainingHealth = health.Value / health.Max;
+
+            return defaultDamage * remainingHealth;
         }
     }
 }

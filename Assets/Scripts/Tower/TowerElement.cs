@@ -15,7 +15,7 @@ namespace TestTD.Data
     {
         [SerializeField] private Descriptor descriptor;
         [SerializeField] private Sprite sprite;
-        [SerializeField] Level level;
+        [SerializeField] private Level level;
 
         public Sprite Sprite => sprite;
         public Level Level => level;
@@ -23,6 +23,7 @@ namespace TestTD.Data
 
         public void Invest()
         {
+
             level.AddExp(1);
         }
 

@@ -15,7 +15,11 @@ namespace TestTD.Entities
     [HideMonoScript]
     public class CinemachinePathFollower : CinemachineDollyCart
     {
-        [SerializeField, Tweakable] UnityEvent onMoveToStart;
+        [SerializeField, Tweakable] private UnityEvent onMoveToStart;
+
+        public IObservable<float> ReachedEnd => this.ObserveEveryValueChanged(x => x.m_Position)
+                                                    .Where(_ => m_Path != null)
+                                                    .Where(x => Mathf.Approximately(x, m_Path.PathLength));
 
         public void SetPath(GameObjectVariable pathGO)
         {
