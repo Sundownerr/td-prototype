@@ -20,11 +20,11 @@ namespace TestTD.Data
     public class Modifier<T>
     {
         private T value;
-        private Variable tag;
+        private Satisfy.Variables.Variable tag;
         private ModifyType type;
 
         public ModifyType Type => type;
-        public Variable Tag => tag;
+        public Satisfy.Variables.Variable Tag => tag;
         public T Value => value;
     }
 

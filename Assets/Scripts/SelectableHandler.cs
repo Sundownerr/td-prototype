@@ -18,7 +18,7 @@ namespace TestTD
     {
         [SerializeField, Variable_R] private SelectableVariable highlighted;
         [SerializeField, Variable_R] private SelectableVariable selected;
-        [SerializeField, Variable_R] private Variable pointerDown;
+        [SerializeField, Variable_R] private Satisfy.Variables.Variable pointerDown;
         [SerializeField, Tweakable] private UnityEvent onSelected;
         [SerializeField, Tweakable] private UnityEvent onDeselected;
         private Selectable currentSelected;
@@ -73,11 +73,11 @@ namespace TestTD
         {
             selected.SetValue(selectable.gameObject);
             selected.Publish();
-            
+
             currentSelected = selectable;
             currentSelected.Select();
 
-            onSelected?.Invoke();;
+            onSelected?.Invoke(); ;
         }
 
         public void Select(SelectableVariable selectableVariable)
@@ -98,7 +98,7 @@ namespace TestTD
                 selected.Value.Deselect();
                 selected.SetNullValue();
             }
-            
+
             onDeselected?.Invoke();
         }
     }

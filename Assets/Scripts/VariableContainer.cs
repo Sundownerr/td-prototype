@@ -18,9 +18,9 @@ namespace TestTD
         [ListDrawerSettings(Expanded = true, ShowIndexLabels = false, DraggableItems = false)]
         [LabelText(" ")]
         [SerializeField, Variable_R]
-        private Variable[] data;
+        private Satisfy.Variables.Variable[] data;
 
-        public bool Contains(Variable variable)
+        public bool Contains(Satisfy.Variables.Variable variable)
         {
             return data.Contains(variable);
         }

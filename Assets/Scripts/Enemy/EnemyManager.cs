@@ -13,6 +13,7 @@ using System.Linq;
 using TestTD.Entities;
 using Satisfy.Managers;
 using Cysharp.Threading.Tasks;
+using TestTD.Variables;
 
 namespace TestTD.Systems
 {
@@ -23,6 +24,9 @@ namespace TestTD.Systems
         [SerializeField, Variable_R] private IntVariable currentWave;
         [SerializeField, Variable_R] private FloatVariable damageToPlayer;
         [SerializeField, Variable_R] private GameObjectVariable spawnPoint;
+        [SerializeField, Variable_R] private EnemyListSO currentEnemies;
+        [SerializeField, Variable_R] private EnemyDataVariable enemyDefeated;
+        [SerializeField, Tweakable] private UnityEvent onWaveCompleted;
         [SerializeField, Tweakable] private UnityEvent onAllWavesCompleted;
 
         private List<WaveSO> waves = new List<WaveSO>();
@@ -54,14 +58,25 @@ namespace TestTD.Systems
         [Button]
         public async void SpawnWave(WaveSO wave)
         {
+            var waveEnemies = new List<EnemyBehaviour>(wave.Enemies.Count);
+
             foreach (var enemy in wave.Enemies)
             {
-                Create(enemy);
+                waveEnemies.Add(Create(enemy));
                 await UniTask.Delay(400);
             }
+
+            Observable.Merge(waveEnemies.Select(x => Observable.Merge(x.Health.Dead, x.ReachedPlayer)))
+                .Skip(waveEnemies.Count - 1)
+                .Take(1)
+                .Subscribe(_ =>
+                {
+                    Debug.Log("wave completed");
+                    onWaveCompleted?.Invoke();
+                });
         }
 
-        private void Create(EnemyData data)
+        private EnemyBehaviour Create(EnemyData data)
         {
             var prefab = data.WavePrefabs.First().Groups.First().Prefabs.First().List[0];
 
@@ -73,14 +88,28 @@ namespace TestTD.Systems
 
             spawnedEnemy.SetData(data);
 
-            // Observable.IntervalFrame(1).Take(1).Subscribe(_ =>
-            // {
             spawnedEnemy.ReachedPlayer.Subscribe(_ =>
             {
                 var damage = GetDamageToPlayer(spawnedEnemy.Health, data.Parameters.DamageToPlayer.Value);
                 damageToPlayer.SetValueAndPublish(damage);
             });
-            // });
+
+            spawnedEnemy.Health.Dead.Subscribe(_ =>
+            {
+                enemyDefeated.SetValueAndPublish(data);
+            });
+
+            Observable.Merge(
+                spawnedEnemy.ReachedPlayer,
+                spawnedEnemy.Health.Dead)
+                .Subscribe(_ =>
+                {
+                    currentEnemies.Remove(spawnedEnemy);
+                });
+
+            currentEnemies.Add(spawnedEnemy);
+
+            return spawnedEnemy;
         }
 
         private float GetDamageToPlayer(Health health, float defaultDamage)

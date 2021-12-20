@@ -14,12 +14,12 @@ namespace TestTD.Data
     [Serializable]
     public class GroupPrefabs
     {
-        [SerializeField, HideLabel] Variable group;
+        [SerializeField, HideLabel] Satisfy.Variables.Variable group;
 
         [ListDrawerSettings(Expanded = true, ShowIndexLabels = false, DraggableItems = false, ShowItemCount = false)]
         [SerializeField] List<GameObjectList> prefabs;
 
-        public Variable Group => group;
+        public Satisfy.Variables.Variable Group => group;
         public IReadOnlyCollection<GameObjectList> Prefabs => prefabs;
     }
 

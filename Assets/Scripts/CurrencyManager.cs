@@ -24,7 +24,6 @@ namespace TestTD.Systems
         [SerializeField, Variable_R] private IntVariable towerMaxLimit;
         [SerializeField, Variable_R] private IntVariable towerCurrentLimit;
         [SerializeField, Variable_R] private FloatVariable costRefundPercent;
-
         [SerializeField, Tweakable] private UnityEvent onNotEnoughMoney;
         [SerializeField, Tweakable] private UnityEvent onNotEnoughLimit;
 
@@ -72,5 +71,14 @@ namespace TestTD.Systems
 
             return true;
         }
+
+        public void HandleEnemyDefeated(EnemyData data)
+        {
+            var gainedMoney = data.Parameters.Money.Value;
+
+            towerBuildCurrency.IncreaseBy((int)gainedMoney);
+        }
+
+        public void HandleEnemyDefeated(EnemyDataVariable variable) => HandleEnemyDefeated(variable.Value);
     }
 }

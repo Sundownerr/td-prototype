@@ -10,7 +10,7 @@ namespace TestTD.Entities
     [Serializable]
     public class Health
     {
-        [SerializeField, InlineProperty] private Memo<float> value;
+        [SerializeField, LabelWidth(60), InlineProperty] private Memo<float> value;
         [SerializeField] private float max;
 
         public Subject<float> Healed { get; } = new Subject<float>();
@@ -20,7 +20,7 @@ namespace TestTD.Entities
         public IObservable<float> HalfHealed => Healed.Where(x => Mathf.Approximately(value.Current, max / 2f));
         public IObservable<float> HalfDead => Damaged.Where(x => Mathf.Approximately(value.Current, max / 2f));
 
-        IObservable<float> currentHealthChanged => this.ObserveEveryValueChanged(x => x.value.Current)
+        IObservable<float> currentHealthChanged => value.Changed
                                                        .Skip(1)
                                                        .TakeUntil(Dead);
 
@@ -41,8 +41,11 @@ namespace TestTD.Entities
 
         public void Heal(float value)
         {
-            if (value <= 0)
+            if (value < 0)
+            {
+                Damage(value);
                 return;
+            }
 
             this.value.Current += value;
             Healed.OnNext(value);
@@ -50,8 +53,11 @@ namespace TestTD.Entities
 
         public void Damage(float value)
         {
-            if (value >= 0)
+            if (value > 0)
+            {
+                Heal(value);
                 return;
+            }
 
             this.value.Current -= value;
             Damaged.OnNext(value);

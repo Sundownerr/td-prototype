@@ -11,7 +11,7 @@ namespace TestTD.Variables
         public void SetNullValue()
         {
             base.SetValue(null);
-            
+
         }
 
         public virtual void SetValue(GameObject value)

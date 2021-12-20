@@ -15,8 +15,8 @@ namespace TestTD.UI
     public class UIElement : MonoBehaviour
     {
         [SerializeField, Editor_R] protected Transform content;
-        [SerializeField, Tweakable] private UnityEvent onShow;
-        [SerializeField, Tweakable] private UnityEvent onHide;
+        [SerializeField] private UnityEvent onShow;
+        [SerializeField] private UnityEvent onHide;
         private bool visible;
 
         public virtual void Show()

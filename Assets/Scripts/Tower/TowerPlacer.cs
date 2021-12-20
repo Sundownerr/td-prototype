@@ -36,8 +36,8 @@ namespace TestTD
         {
             Waiting, Replacing, BadPosition,
         }
-        [SerializeField, Variable_R] private Variable pointerDown;
-        [SerializeField, Variable_R] private Variable pointerUp;
+        [SerializeField, Variable_R] private Satisfy.Variables.Variable pointerDown;
+        [SerializeField, Variable_R] private Satisfy.Variables.Variable pointerUp;
         [SerializeField, Variable_R] private CellObjectVariable selectedTower;
         [SerializeField, Variable_R] private CellVariable highlightedCell;
         [SerializeField, Variable_R] private CellVariable selectedCell;
