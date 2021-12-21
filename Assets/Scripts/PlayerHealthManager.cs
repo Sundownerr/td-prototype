@@ -51,6 +51,7 @@ namespace TestTD.Systems
 
         public void RegenerateShield()
         {
+
             shield.IncreaseBy(shieldRegenerationPerWave);
         }
     }

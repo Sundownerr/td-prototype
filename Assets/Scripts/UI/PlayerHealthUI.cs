@@ -16,44 +16,56 @@ namespace TestTD.UI
     [HideMonoScript]
     public class PlayerHealthUI : UIElement
     {
-        [SerializeField, Variable_R] FloatVariable playerShieldMax;
-        [SerializeField, Variable_R] FloatVariable playerShield;
-        [SerializeField, Variable_R] FloatVariable playerHealthMax;
-        [SerializeField, Variable_R] FloatVariable playerHealth;
-        [SerializeField, Editor_R] Image shieldBar;
-        [SerializeField, Editor_R] Image shieldBarPrevious;
-        [SerializeField, Editor_R] Image healthBar;
-        [SerializeField, Editor_R] Image healthBarPrevious;
+        [SerializeField, Variable_R] private FloatVariable playerShieldMax;
+        [SerializeField, Variable_R] private FloatVariable playerShield;
+        [SerializeField, Variable_R] private FloatVariable playerHealthMax;
+        [SerializeField, Variable_R] private FloatVariable playerHealth;
+        [SerializeField, Editor_R] private Image shieldBar;
+        [SerializeField, Editor_R] private Image shieldBarPrevious;
+        [SerializeField, Editor_R] private Image healthBar;
+        [SerializeField, Editor_R] private Image healthBarPrevious;
+
+        private float shieldFillAmount => playerShield.Value / playerShieldMax.Value;
+        private float healthFillAmount => playerHealth.Value / playerHealthMax.Value;
 
         private void Start()
         {
-            UpdateShield();
-            UpdateHealth();
+            shieldBar.fillAmount = shieldFillAmount;
+            healthBar.fillAmount = healthFillAmount;
+
+            shieldBarPrevious.fillAmount = shieldFillAmount;
+            healthBarPrevious.fillAmount = healthFillAmount;
+
+            var throttleTime = 0.6f;
+            var fillTime = 0.3f;
 
             playerShield.Changed.Subscribe(x =>
             {
-                UpdateShield();
+                ChangeFillAmount(shieldBar, shieldFillAmount, fillTime);
             }).AddTo(this);
+
+            playerShield.Changed.Throttle(TimeSpan.FromSeconds(throttleTime))
+                .Subscribe(_ =>
+                {
+                    ChangeFillAmount(shieldBarPrevious, shieldBar.fillAmount, fillTime);
+                }).AddTo(this);
 
             playerHealth.Changed.Subscribe(_ =>
             {
-                UpdateHealth();
+                ChangeFillAmount(healthBar, healthFillAmount, fillTime);
             }).AddTo(this);
+
+            playerHealth.Changed.Throttle(TimeSpan.FromSeconds(throttleTime))
+                .Subscribe(_ =>
+                {
+                    ChangeFillAmount(healthBarPrevious, healthBar.fillAmount, fillTime);
+                }).AddTo(this);
         }
 
-        private void UpdateHealth() =>
-            UpdateUI(healthBar, healthBarPrevious, playerHealth.Value, playerHealthMax.Value);
-
-        private void UpdateShield() =>
-            UpdateUI(shieldBar, shieldBarPrevious, playerShield.Value, playerShieldMax.Value);
-
-        private void UpdateUI(Image currentImage, Image previousImage, float current, float max)
+        private void ChangeFillAmount(Image image, float targetFillAmount, float time)
         {
-            var prevFillAmount = currentImage.fillAmount;
-            var fillAmount = current / max;
-            DOTween.To(() => currentImage.fillAmount, val => { currentImage.fillAmount = val; }, fillAmount, 0.3f);
-
-            previousImage.fillAmount = prevFillAmount;
+            DOTween.Kill(image.fillAmount, true);
+            DOTween.To(() => image.fillAmount, val => { image.fillAmount = val; }, targetFillAmount, time);
         }
     }
 }

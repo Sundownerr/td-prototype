@@ -69,6 +69,7 @@ namespace TestTD.Systems
             Observable.Merge(waveEnemies.Select(x => Observable.Merge(x.Health.Dead, x.ReachedPlayer)))
                 .Skip(waveEnemies.Count - 1)
                 .Take(1)
+                .DelayFrame(1)
                 .Subscribe(_ =>
                 {
                     Debug.Log("wave completed");
