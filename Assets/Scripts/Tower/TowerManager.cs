@@ -11,19 +11,18 @@ using Satisfy.Attributes;
 using TestTD.Variables;
 using TestTD.Data;
 using TestTD.Systems;
+using Satisfy.Bricks;
 
 namespace TestTD
 {
-    [Serializable]
-    public class TowerDataEvent : UnityEvent<TowerData> { }
-
     [HideMonoScript]
     public class TowerManager : MonoBehaviour
     {
-        [SerializeField, Variable_R] private TowerDataVariable towerBuildRequest;
+        [SerializeField, Variable_R] private TowerDataEvent towerBuildRequest;
         [SerializeField, Variable_R] private CellVariable selectedCell;
+        [SerializeField, Variable_R] private SelectableEvent cellReleased;
         [SerializeField, Editor_R] private CurrencyManager currencyManager;
-        [SerializeField, Tweakable] private TowerDataEvent onTowerSold;
+        [SerializeField, Tweakable] private UnityEvent<TowerData> onTowerSold;
 
         private readonly Dictionary<CellObject, TowerData> towers = new Dictionary<CellObject, TowerData>();
         private TowerData lastBuildTowerData;
@@ -40,7 +39,7 @@ namespace TestTD
                 return;
 
             lastBuildTowerData = data;
-            towerBuildRequest.SetValueAndPublish(lastBuildTowerData);
+            towerBuildRequest.Raise(lastBuildTowerData);
         }
 
         public void SellTower(CellObjectVariable tower)
@@ -48,12 +47,15 @@ namespace TestTD
             var data = towers[tower.CellObject];
 
             towers.Remove(tower.CellObject);
+
+            cellReleased.Raise(tower.CellObject.Cell);
+
             onTowerSold?.Invoke(data);
         }
 
-        public void HandleBuildedTower(CellObjectVariable tower)
+        public void HandleBuildedTower(CellObject tower)
         {
-            towers.Add(tower.CellObject, lastBuildTowerData);
+            towers.Add(tower, lastBuildTowerData);
             lastBuildTowerData = null;
         }
     }

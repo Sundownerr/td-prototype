@@ -8,15 +8,28 @@ using DG.Tweening;
 using UniRx;
 using Satisfy.Variables;
 using Satisfy.Attributes;
+using TestTD.Data;
+using Unity.Linq;
 
 namespace TestTD.Entities
 {
     [HideMonoScript]
     public class TowerBehaviour : MonoBehaviour
     {
-        void Start()
+        [SerializeField, Editor_R] Transform moduleContainer;
+
+        private void Start()
         {
-            var update = Observable.EveryUpdate().Where(_ => enabled && gameObject.activeSelf);
+            var modules = moduleContainer.gameObject.Children().OfComponent<InitializableModule>();
+
+            foreach (var item in modules)
+            {
+                item.Initialize();
+            }
+        }
+
+        public void SetData(TowerData data)
+        {
 
         }
     }

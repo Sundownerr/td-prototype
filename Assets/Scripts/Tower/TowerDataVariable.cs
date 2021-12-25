@@ -7,7 +7,7 @@ namespace TestTD.Variables
 {
     [CreateAssetMenu(fileName = "TowerDataVariable", menuName = "Variables/Custom/Tower Data")]
     [Serializable]
-    public class TowerDataVariable : VariableSO<TowerData>
+    public class TowerDataVariable : Variable<TowerData>
     {
 
     }

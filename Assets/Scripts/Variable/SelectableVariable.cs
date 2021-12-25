@@ -6,7 +6,7 @@ namespace TestTD.Variables
 {
     [CreateAssetMenu(fileName = "Selectable", menuName = "Variables/Custom/Selectable")]
     [Serializable]
-    public class SelectableVariable : VariableSO<Selectable>
+    public class SelectableVariable : Variable<Selectable>
     {
         public void SetNullValue()
         {

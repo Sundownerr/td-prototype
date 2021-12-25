@@ -7,7 +7,7 @@ namespace TestTD.Variables
 {
     [CreateAssetMenu(fileName = "Enemy Data", menuName = "Variables/Custom/Enemy Data")]
     [Serializable]
-    public class EnemyDataVariable : VariableSO<EnemyData>
+    public class EnemyDataVariable : Variable<EnemyData>
     {
 
     }

@@ -13,14 +13,20 @@ namespace TestTD
     public class CellObject : Selectable
     {
         public Cell Cell => cell;
-        [SerializeField, Tweakable, HideInEditorMode]
-        private Cell cell;
+
+        [SerializeField, Tweakable, HideInEditorMode] private Cell cell;
         [SerializeField, Tweakable] private UnityEvent onPlaced;
+        [SerializeField, Tweakable] private UnityEvent onDestroyed;
 
         public void UseCell(Cell cell)
         {
             this.cell = cell;
             onPlaced?.Invoke();
+        }
+
+        private void OnDestroy()
+        {
+            onDestroyed?.Invoke();
         }
     }
 }

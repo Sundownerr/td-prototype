@@ -20,6 +20,14 @@ namespace TestTD.Variables
             SetCell(value.GetComponent<Cell>());
         }
 
+        public void SetValueFromSelectable(Selectable value)
+        {
+            if (value == null)
+                return;
+
+            SetCell(value.GetComponent<Cell>());
+        }
+
         public void SetCell(Cell cell)
         {
             this.cell = cell;

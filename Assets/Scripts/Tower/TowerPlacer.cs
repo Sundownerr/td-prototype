@@ -11,6 +11,7 @@ using Satisfy.Attributes;
 using Satisfy.Variables;
 using TestTD.Variables;
 using Satisfy.Managers;
+using Satisfy.Bricks;
 
 namespace TestTD
 {
@@ -30,23 +31,24 @@ namespace TestTD
 
     [Serializable, CreateAssetMenu(fileName = "Tower Placer", menuName = "System/Tower Placer")]
     [HideMonoScript]
-    public class TowerPlacer : ListenerSystem
+    public class TowerPlacer : ScriptableObjectSystem
     {
         private enum State
         {
             Waiting, Replacing, BadPosition,
         }
-        [SerializeField, Variable_R] private Satisfy.Variables.Variable pointerDown;
-        [SerializeField, Variable_R] private Satisfy.Variables.Variable pointerUp;
+        [SerializeField, Variable_R] private Satisfy.Bricks.Event pointerDown;
+        [SerializeField, Variable_R] private Satisfy.Bricks.Event pointerUp;
         [SerializeField, Variable_R] private CellObjectVariable selectedTower;
         [SerializeField, Variable_R] private CellVariable highlightedCell;
         [SerializeField, Variable_R] private CellVariable selectedCell;
-        [SerializeField, Variable_R] private CellVariable previousUsedCell;
-        [SerializeField, Variable_R] private GameObjectVariable replaceLineGO;
+        [SerializeField, Variable_R] private GameObjectEvent setReplaceLine;
+        [SerializeField, Variable_R] private Satisfy.Bricks.SelectableEvent cellReleased;
         [SerializeField, Tweakable] private Vector3 lineOffset;
         [SerializeField, Tweakable] private UnityEvent onStartPlacing;
         [SerializeField, Tweakable] private UnityEvent onEndPlacingSuccess;
         [SerializeField, Tweakable] private UnityEvent onEndPlacingCanceled;
+        [SerializeField] private BaseListener listener;
 
         private readonly Subject<int> finishedReplacing = new Subject<int>();
         private readonly Subject<int> canceledReplacing = new Subject<int>();
@@ -55,17 +57,16 @@ namespace TestTD
         private State state;
         private Transform SelectedTowerRoot => selectedTower.Value.Reference.transform;
 
+
         public override void Initialize()
         {
             base.Initialize();
+            listener.Initialize();
 
-            replaceLineGO.Changed.Select(x => x.Current)
-                .Subscribe(x =>
-                {
-                    endPointLine = x.GetComponent<LineRenderer>();
-                    endPointLine.gameObject.SetActive(false);
-                });
-
+            setReplaceLine.Raised.Subscribe(x =>
+            {
+                endPointLine = x.GetComponent<LineRenderer>();
+            });
 
             HideLine();
 
@@ -98,8 +99,7 @@ namespace TestTD
         {
             state = State.Replacing;
 
-            previousUsedCell.SetCell(selectedTower.CellObject.Cell);
-            previousUsedCell.Publish();
+            cellReleased.Raise(selectedTower.CellObject.Cell);
 
             ShowLine();
 
@@ -115,14 +115,12 @@ namespace TestTD
                     endPointLine.SetPosition(1, SelectedTowerRoot.position + lineOffset);
                 });
 
-            pointerDown.Published.Take(1)
+            pointerDown.Raised.Take(1)
                 .TakeUntil(canceledReplacing)
                 .Subscribe(_ =>
                 {
                     finishedReplacing.OnNext(1);
                 });
-
-            var a = new int[5];
         }
 
         private Vector3 GetTargetPosition()
@@ -160,8 +158,6 @@ namespace TestTD
 
             endPointLine.gameObject.SetActive(true);
             DOTween.To(() => endPointLine.widthMultiplier, val => { endPointLine.widthMultiplier = val; }, 1, 0.2f);
-
-
         }
 
         private void HideLine()

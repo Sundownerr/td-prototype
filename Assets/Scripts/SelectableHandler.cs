@@ -10,51 +10,59 @@ using Satisfy.Variables;
 using Satisfy.Attributes;
 using UnityEngine.EventSystems;
 using TestTD.Variables;
+using Satisfy.Bricks;
 
 namespace TestTD
 {
     [HideMonoScript]
     public class SelectableHandler : MonoBehaviour
     {
-        [SerializeField, Variable_R] private SelectableVariable highlighted;
-        [SerializeField, Variable_R] private SelectableVariable selected;
-        [SerializeField, Variable_R] private Satisfy.Variables.Variable pointerDown;
-        [SerializeField, Tweakable] private UnityEvent onSelected;
-        [SerializeField, Tweakable] private UnityEvent onDeselected;
+        [Required]
+        [SerializeField, Editor_R] private Raycaster raycaster;
+        [SerializeField, Variable_R] private Satisfy.Bricks.Event pointerDown;
+        [SerializeField, Tweakable] private UnityEvent<Selectable> onSelected;
+        [SerializeField, Tweakable] private UnityEvent<Selectable> onDeselected;
         private Selectable currentSelected;
 
         private void Start()
         {
-            highlighted.Changed.Select(x => x.Previous)
-                .Where(x => x != null)
+            Selectable highlighted = null;
+
+            raycaster.Hit.Select(x => x.GetComponent<Selectable>())
                 .Where(x => !x.IsSelected)
                 .Subscribe(x =>
                 {
-                    x.Dehighlight();
-                }).AddTo(this);
+                    if (highlighted != null && !highlighted.IsSelected)
+                    {
+                        highlighted.Dehighlight();
+                    }
 
-            highlighted.Changed.Select(x => x.Current)
-                .Where(x => x != null)
-                 .Where(x => !x.IsSelected)
-                .Subscribe(x =>
-                {
+                    highlighted = x;
                     x.Highlight();
                 }).AddTo(this);
 
+            raycaster.LostHitObject.Where(_ => highlighted != null)
+                .Where(_ => !highlighted.IsSelected)
+                .Subscribe(_ =>
+                {
+                    highlighted.Dehighlight();
+                    highlighted = null;
+                }).AddTo(this);
 
             var eventSystem = EventSystem.current;
 
-            var click = pointerDown.Published.Where(_ => enabled)
-                                             .Where(_ => !eventSystem.IsPointerOverGameObject());
+            var click = pointerDown.Raised.Where(_ => enabled)
+                                          .Where(_ => !eventSystem.IsPointerOverGameObject())
+                                          .Select(x => highlighted);
 
-            click.Where(_ => highlighted.Value != null)
+            click.Where(x => x != null)
                 .Subscribe(x =>
                 {
                     DeselectCurrent();
-                    Select(highlighted.Value);
+                    Select(x.GetComponent<Selectable>());
                 }).AddTo(this);
 
-            click.Where(_ => highlighted.Value == null)
+            click.Where(x => x == null)
                 .Subscribe(_ =>
                 {
                     DeselectCurrent();
@@ -62,22 +70,19 @@ namespace TestTD
 
             this.ObserveEveryValueChanged(x => x.enabled)
                 .Where(x => x == false)
-                .Where(_ => highlighted.Value != null)
-                .Subscribe(_ =>
+                .Where(_ => highlighted != null)
+                .Subscribe(x =>
                 {
-                    highlighted.Value.Dehighlight();
+                    highlighted.Dehighlight();
                 }).AddTo(this);
         }
 
         public void Select(Selectable selectable)
         {
-            selected.SetValue(selectable.gameObject);
-            selected.Publish();
-
             currentSelected = selectable;
             currentSelected.Select();
 
-            onSelected?.Invoke(); ;
+            onSelected?.Invoke(selectable);
         }
 
         public void Select(SelectableVariable selectableVariable)
@@ -90,16 +95,11 @@ namespace TestTD
             if (currentSelected != null)
             {
                 currentSelected.Deselect();
+
+                onDeselected?.Invoke(currentSelected);
+
                 currentSelected = null;
             }
-
-            if (selected.Value != null)
-            {
-                selected.Value.Deselect();
-                selected.SetNullValue();
-            }
-
-            onDeselected?.Invoke();
         }
     }
 }

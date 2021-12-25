@@ -11,11 +11,6 @@ using UnityEngine.EventSystems;
 
 namespace TestTD
 {
-    [Serializable]
-    public class GameObjectEvent : UnityEvent<GameObject>
-    {
-    }
-
     [HideMonoScript]
     public class Raycaster : MonoBehaviour
     {
@@ -48,21 +43,22 @@ namespace TestTD
 
         [PropertySpace(10)]
         [SerializeField, BoxGroup("tweakable", false)]
-        private GameObjectEvent onHit;
+        private UnityEvent<GameObject> onHit;
 
         [SerializeField, BoxGroup("tweakable", false)]
         private UnityEvent onLostHitObject;
 
         [SerializeField, BoxGroup("tweakable", false), HideInEditorMode]
-        private GameObject hitObject;
-
-        [SerializeField, BoxGroup("tweakable", false), HideInEditorMode]
-        private GameObject nextHitObject;
+        private Transform hitTransform;
 
         private bool isObjectLost;
 
         private RaycastHit castResult => fromCameraToPointer ? CastRayFromCamera() : CastRayFromStartPoint();
         private RaycastHit[] results = new RaycastHit[1];
+
+        public GameObject HitObject => hitTransform == null ? null : hitTransform.gameObject;
+        public Subject<GameObject> Hit { get; } = new Subject<GameObject>();
+        public Subject<int> LostHitObject { get; } = new Subject<int>();
 
         private void Start()
         {
@@ -107,34 +103,32 @@ namespace TestTD
             return CastRay(rayStartPoint.position, rayStartPoint.forward);
         }
 
-        private void HandleHitObject(Transform obj)
+        private void HandleHitObject(Transform hitObject)
         {
-            if (obj == null)
+            if (hitObject == null)
             {
                 HandleHitObjectLost();
                 return;
             }
 
-            if (nextHitObject != null && nextHitObject.transform == obj)
+            if (hitObject == hitTransform)
                 return;
 
-            nextHitObject = obj.gameObject;
-            hitObject = nextHitObject;
 
-            onHit?.Invoke(hitObject);
+            hitTransform = hitObject;
+
+            onHit?.Invoke(hitObject.gameObject);
+            Hit.OnNext(hitObject.gameObject);
         }
 
         private void HandleHitObjectLost()
         {
-            nextHitObject = null;
-
             if (retainLastHitObject)
-            {
                 return;
-            }
 
             onLostHitObject?.Invoke();
-            hitObject = null;
+            LostHitObject.OnNext(1);
+            hitTransform = null;
         }
 
         public GameObject TryGetHitObject()
@@ -155,13 +149,13 @@ namespace TestTD
 
             Gizmos.color = Color.cyan;
 
-            if (hitObject == null)
+            if (hitTransform == null)
             {
                 Gizmos.DrawRay(rayStartPoint.position, rayStartPoint.forward * maxDistance);
                 return;
             }
 
-            var position = hitObject.transform.position;
+            var position = hitTransform.transform.position;
             Gizmos.DrawLine(rayStartPoint.position, position);
             Gizmos.DrawSphere(position, 0.5f);
         }

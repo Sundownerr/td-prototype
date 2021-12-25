@@ -12,16 +12,18 @@ using TestTD.Variables;
 
 namespace TestTD
 {
-    [Serializable]
-    public class CellEvent : UnityEvent<Cell> {}
-    
     public class CellManager : MonoBehaviour
     {
-        [SerializeField, Tweakable] private CellEvent onSelectedTowerCell;
-        
+        [SerializeField, Tweakable] private UnityEvent<Cell> onSelectedTowerCell;
+
         public void HandleTowerSelected(CellObjectVariable tower)
         {
-           onSelectedTowerCell?.Invoke(tower.CellObject.Cell);
+            onSelectedTowerCell?.Invoke(tower.CellObject.Cell);
+        }
+
+        public void ReleaseCell(Selectable cell)
+        {
+            cell.GetComponent<Cell>().SetFree();
         }
     }
 }

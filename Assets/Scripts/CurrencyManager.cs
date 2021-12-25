@@ -11,41 +11,40 @@ using Satisfy.Attributes;
 using Satisfy.Managers;
 using TestTD.Data;
 using TestTD.Variables;
+using Satisfy.Bricks;
 
 namespace TestTD.Systems
 {
     [Serializable, CreateAssetMenu(fileName = "Currency Manager", menuName = "System/Currency Manager")]
     [HideMonoScript]
-    public class CurrencyManager : ListenerSystem
+    public class CurrencyManager : ScriptableObjectSystem
     {
-        [SerializeField, Variable_R] private FloatParameterSO towerCost;
-        [SerializeField, Variable_R] private FloatParameterSO towerLimitRequirement;
         [SerializeField, Variable_R] private IntVariable towerBuildCurrency;
         [SerializeField, Variable_R] private IntVariable towerMaxLimit;
         [SerializeField, Variable_R] private IntVariable towerCurrentLimit;
         [SerializeField, Variable_R] private FloatVariable costRefundPercent;
         [SerializeField, Tweakable] private UnityEvent onNotEnoughMoney;
         [SerializeField, Tweakable] private UnityEvent onNotEnoughLimit;
+        [SerializeField] private EventListenerEmbedded<EnemyDataEvent, EnemyData> enemyEventListener;
+        [SerializeField] private EventListenerEmbedded<TowerDataEvent, TowerData> towerEventListener;
 
         public override void Initialize()
         {
             base.Initialize();
+            enemyEventListener.Initialize();
+            towerEventListener.Initialize();
         }
 
-        public void HandleTowerBuild(TowerDataVariable dataVariable) =>
-            HandleTowerBuild(dataVariable.Value.Parameters);
-
-        private void HandleTowerBuild(TowerParameters parameters)
+        public void HandleTowerPurchased(TowerData data)
         {
+            var parameters = data.Parameters;
             towerBuildCurrency.DecreaseBy((int)parameters.BuildCost.Value);
             towerCurrentLimit.DecreaseBy((int)parameters.TowerLimitRequirement.Value);
         }
 
-        public void HandleTowerSold(TowerDataVariable dataVariable) =>
-            HandleTowerSold(dataVariable.Value.Parameters);
-
-        private void HandleTowerSold(TowerParameters parameters)
+        public void HandleTowerSold(TowerData data)
         {
+            var parameters = data.Parameters;
             towerBuildCurrency.IncreaseBy((int)(parameters.BuildCost.Value * costRefundPercent.Value));
             towerCurrentLimit.IncreaseBy((int)parameters.TowerLimitRequirement.Value);
         }
@@ -78,7 +77,5 @@ namespace TestTD.Systems
 
             towerBuildCurrency.IncreaseBy((int)gainedMoney);
         }
-
-        public void HandleEnemyDefeated(EnemyDataVariable variable) => HandleEnemyDefeated(variable.Value);
     }
 }

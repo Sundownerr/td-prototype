@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Satisfy.Attributes;
 using Sirenix.OdinInspector;
+using TestTD.Entities;
 using UnityEngine;
 
 namespace TestTD.Data
