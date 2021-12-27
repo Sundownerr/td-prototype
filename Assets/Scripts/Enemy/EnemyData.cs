@@ -14,10 +14,11 @@ namespace TestTD.Data
     [Serializable]
     public class GroupPrefabs
     {
-        [SerializeField, HideLabel] Satisfy.Variables.Variable group;
+        [SerializeField, HideLabel] private Satisfy.Variables.Variable group;
 
         [ListDrawerSettings(Expanded = true, ShowIndexLabels = false, DraggableItems = false, ShowItemCount = false)]
-        [SerializeField] List<GameObjectList> prefabs;
+        [SerializeField]
+        private List<GameObjectList> prefabs;
 
         public Satisfy.Variables.Variable Group => group;
         public IReadOnlyCollection<GameObjectList> Prefabs => prefabs;
@@ -50,7 +51,7 @@ namespace TestTD.Data
         [ListDrawerSettings(Expanded = true, ShowIndexLabels = false, ShowItemCount = false, DraggableItems = false)]
         [SerializeField, Tweakable] private List<WaveSettings> wavePrefabs;
 
-        [SerializeField, Tweakable] EnemyParameters parameters;
+        [SerializeField, Tweakable] private EnemyParameters parameters;
 
         public Descriptor Descriptor => descriptor;
         public EnemyParameters Parameters => parameters;

@@ -17,13 +17,19 @@ namespace TestTD.Entities
 
         private GameObject loadedProjectile;
 
-        public IObservable<GameObject> Loaded => loaded;
+        public IObservable<int> Loaded => loaded;
 
         private bool isLoading;
-        private readonly Subject<GameObject> loaded = new Subject<GameObject>();
+        private readonly Subject<int> loaded = new Subject<int>();
 
         private void Load()
         {
+            if (loadedProjectile != null)
+            {
+                loaded.OnNext(1);
+                return;
+            }
+            
             pool.TrySpawn(ref loadedProjectile,
                           shootPoint.position,
                           Quaternion.LookRotation(shootPoint.forward, shootPoint.up),
@@ -32,8 +38,14 @@ namespace TestTD.Entities
             loadedProjectile.transform.position = shootPoint.position;
 
             Debug.Log("Loading projectle");
-            loaded.OnNext(loadedProjectile);
+            loaded.OnNext(1);
+        }
 
+        public GameObject GiveProjectile()
+        {
+            var projectile = loadedProjectile;
+            loadedProjectile = null;
+            return projectile;
         }
 
         public override void Initialize()
@@ -55,6 +67,7 @@ namespace TestTD.Entities
 
             targetProvider.ObserveEveryValueChanged(x => x.HaveTargets)
                 .Where(x => x == false)
+                .Throttle(TimeSpan.FromSeconds(reloadTime))
                 .Subscribe(_ =>
                 {
                     Debug.Log("Stop loading");
@@ -66,7 +79,7 @@ namespace TestTD.Entities
         {
             Debug.Log("Dispose projectile");
 
-            pool.Despawn(projectile, 0.2f);
+            pool.Despawn(projectile);
         }
     }
 }

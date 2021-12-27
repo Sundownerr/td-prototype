@@ -27,26 +27,28 @@ namespace TestTD.Entities
 
         public override void Initialize()
         {
-            range.Entered.Subscribe(x =>
+            range.Entered.Subscribe(AddTarget).AddTo(this);
+            range.Exit.Subscribe(RemoveTarget).AddTo(this);
+        }
+
+        private void RemoveTarget(Collider targetCollider)
+        {
+            targets.Remove(targetCollider.gameObject);
+
+            if (currentTarget == targetCollider.gameObject)
             {
-                targets.Add(x.gameObject);
+                currentTarget = GetTarget();
+            }
+        }
 
-                if (currentTarget == null)
-                {
-                    currentTarget = x.gameObject;
-                }
+        private void AddTarget(Collider targetCollider)
+        {
+            targets.Add(targetCollider.gameObject);
 
-            }).AddTo(this);
-
-            range.Exit.Subscribe(x =>
+            if (currentTarget == null)
             {
-                targets.Remove(x.gameObject);
-
-                if (currentTarget == x.gameObject)
-                {
-                    currentTarget = GetTarget();
-                }
-            }).AddTo(this);
+                currentTarget = targetCollider.gameObject;
+            }
         }
 
         private GameObject GetTarget()
@@ -56,18 +58,9 @@ namespace TestTD.Entities
                 return currentTarget.gameObject;
             }
 
-            if (targets.Count == 0)
-            {
-                return null;
-            }
-
-            if (currentTarget == null)
-            {
-                targets.Remove(currentTarget);
-                return GetTarget();
-            }
-
-            return targets.First();
+            targets.RemoveWhere(x => x == null);
+            
+            return targets.Count == 0 ? null : targets.First();
         }
     }
 }

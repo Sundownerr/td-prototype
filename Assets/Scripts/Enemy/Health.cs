@@ -4,63 +4,93 @@ using Sirenix.OdinInspector;
 using UniRx;
 using TestTD.Data;
 using Satisfy.Utility;
+using Satisfy.Attributes;
+using UnityEngine.Events;
 
 namespace TestTD.Entities
 {
     [Serializable]
-    public class Health
+    public class Health : InitializableModule
     {
         [SerializeField, LabelWidth(60), InlineProperty] private Memo<float> value;
         [SerializeField] private float max;
 
+        [SerializeField, Tweakable] private UnityEvent onDead;
+        [SerializeField, Tweakable] private UnityEvent onDamaged;
+        [SerializeField, Tweakable] private UnityEvent onHealed;
+
         public Subject<float> Healed { get; } = new Subject<float>();
         public Subject<float> Damaged { get; } = new Subject<float>();
-        public IObservable<float> Dead => Damaged.Where(x => Mathf.Approximately(value.Current, 0));
-        public IObservable<float> FullHealed => Healed.Where(x => Mathf.Approximately(value.Current, max));
-        public IObservable<float> HalfHealed => Healed.Where(x => Mathf.Approximately(value.Current, max / 2f));
-        public IObservable<float> HalfDead => Damaged.Where(x => Mathf.Approximately(value.Current, max / 2f));
-
-        IObservable<float> currentHealthChanged => value.Changed
-                                                       .Skip(1)
-                                                       .TakeUntil(Dead);
+        public IObservable<float> ReachedZero => Damaged.Where(_ => Mathf.Approximately(value.Current, 0)).Take(1);
+        public IObservable<float> FullHealed =>
+            Healed.Where(_ => Mathf.Approximately(value.Current, max)).TakeUntil(ReachedZero);
+        public IObservable<float> HalfHealed =>
+            Healed.Where(_ => Mathf.Approximately(value.Current, max / 2f)).TakeUntil(ReachedZero);
+        public IObservable<float> HalfDead =>
+            Damaged.Where(_ => Mathf.Approximately(value.Current, max / 2f)).TakeUntil(ReachedZero);
 
         public float Value => value.Current;
         public float Max => max;
 
-        public Health(float current)
+        public override void Initialize()
+        {
+            Healed.TakeUntil(ReachedZero).Subscribe(_ =>
+            {
+                onHealed?.Invoke();
+                // Debug.Log("healed");
+            }).AddTo(this);
+            Damaged.TakeUntil(ReachedZero).Subscribe(_ =>
+            {
+                onDamaged?.Invoke();
+                // Debug.Log("damaged");
+            }).AddTo(this);
+            ReachedZero.Take(1).Subscribe(_ =>
+            {
+                onDead?.Invoke();
+                // Debug.Log("dead");
+            }).AddTo(this);
+        }
+
+        public void Initialize(float current)
         {
             this.value = new Memo<float>(current);
             this.max = current;
+
+            Initialize();
         }
 
-        public Health(float current, float max)
+        public void Initialize(float current, float max)
         {
             this.value = new Memo<float>(current);
             this.max = max;
+
+            Initialize();
         }
 
-        public void Heal(float value)
+        public void TakeHealing(float healValue)
         {
-            if (value < 0)
+            // Debug.Log($"taking {healValue} heal ", gameObject);
+            if (healValue < 0)
             {
-                Damage(value);
+                TakeDamage(healValue);
                 return;
             }
 
-            this.value.Current += value;
-            Healed.OnNext(value);
+            this.value.Current += healValue;
+            Healed.OnNext(healValue);
         }
 
-        public void Damage(float value)
+        public void TakeDamage(float damageValue)
         {
-            if (value > 0)
+            // Debug.Log($"taking {damageValue} damage ", gameObject);
+            if (damageValue < 0)
             {
-                Heal(value);
+                TakeHealing(damageValue);
                 return;
             }
 
-            this.value.Current -= value;
-            Damaged.OnNext(value);
+            this.value.Current -= damageValue;
+            Damaged.OnNext(damageValue);
         }
     }
 }

@@ -18,7 +18,7 @@ namespace TestTD.Data
         [SerializeField, Tweakable] private GameObject prefab;
         [SerializeField, Tweakable] private Sprite sprite;
         [SerializeField, Tweakable] private TowerParameters parameters;
-
+      
         public GameObject Prefab => prefab;
         public Sprite Sprite => sprite;
         public TowerElement Element => element;

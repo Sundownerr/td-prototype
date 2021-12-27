@@ -8,10 +8,10 @@ namespace TestTD.Data
     [HideMonoScript]
     public class EnemyParameters
     {
-        [SerializeField] FloatParameter speed;
-        [SerializeField] FloatParameter health;
-        [SerializeField] FloatParameter damageToPlayer;
-        [SerializeField] FloatParameter money;
+        [SerializeField] private FloatParameter speed;
+        [SerializeField] private FloatParameter health;
+        [SerializeField] private FloatParameter damageToPlayer;
+        [SerializeField] private FloatParameter money;
 
         public FloatParameter Speed => speed;
         public FloatParameter Health => health;

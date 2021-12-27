@@ -3,7 +3,7 @@ using Sirenix.OdinInspector;
 
 namespace TestTD.Entities
 {
-    [HideMonoScript]
+    [HideMonoScript, InlineProperty]
     public abstract class Module : MonoBehaviour { }
 
     [HideMonoScript]

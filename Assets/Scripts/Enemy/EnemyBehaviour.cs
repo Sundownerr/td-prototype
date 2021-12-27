@@ -17,14 +17,10 @@ namespace TestTD.Entities
     {
         [SerializeField, Editor_R] private CinemachinePathFollower follower;
         [SerializeField, HideInEditorMode] private EnemyData data;
-        [SerializeField, HideInEditorMode] private Health health;
+        [SerializeField, Editor_R] private Health health;
+        [SerializeField, Tweakable] private UnityEvent onReachedPlayer;
 
-        [SerializeField, Tweakable] UnityEvent onReachedPlayer;
-        [SerializeField, Tweakable] UnityEvent onDead;
-        [SerializeField, Tweakable] UnityEvent onDamaged;
-        [SerializeField, Tweakable] UnityEvent onHealed;
-
-        public IObservable<float> ReachedPlayer => follower.ReachedEnd.Take(1);
+        public IObservable<float> ReachedPlayer => follower.ReachedEnd;
         public Health Health => health;
 
         public void SetData(EnemyData value)
@@ -32,16 +28,8 @@ namespace TestTD.Entities
             data = Instantiate(value);
 
             HandleFollower();
-            HandleHealth();
-        }
-
-        private void HandleHealth()
-        {
-            health = new Health(data.Parameters.Health.Value);
-
-            health.Damaged.Subscribe(_ => { onDead?.Invoke(); }).AddTo(this);
-            health.Healed.Subscribe(_ => { onHealed?.Invoke(); }).AddTo(this);
-            health.Dead.Subscribe(_ => { onDead?.Invoke(); }).AddTo(this);
+            
+            health.Initialize(data.Parameters.Health.Value);
         }
 
         private void HandleFollower()

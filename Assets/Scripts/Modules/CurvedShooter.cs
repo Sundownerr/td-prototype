@@ -20,7 +20,7 @@ namespace TestTD.Entities
                 .Subscribe(x =>
                 {
                     Debug.Log("shooter shooting");
-                    Shoot(x.transform, targetProvider.Target.transform);
+                    Shoot(loader.GiveProjectile().transform, targetProvider.Target.transform);
                 }).AddTo(this);
         }
 
@@ -47,7 +47,18 @@ namespace TestTD.Entities
                     projectile.localPosition = GetCurveOffsettedPosition(projectile.localPosition, distance, travelPercent);
                 }, () =>
                 {
-                    HandleProjectileHitTarget(projectile.gameObject);
+                    loader.DisposeProjectile(projectile.gameObject);
+                    
+                    if (target == null)
+                    {
+                        Debug.Log("shooter failed");
+                        attackFailed.OnNext(null);
+                        return;
+                    }
+
+                    HandleProjectileHitTarget(projectile.gameObject, targetProvider.Target);
+               
+                    Debug.Log("shooter completed");
                 }).AddTo(this);
         }
 
@@ -57,65 +68,6 @@ namespace TestTD.Entities
             position.y += yCurve.Evaluate(travelPercent) * distance;
 
             return position;
-        }
-
-        private Quaternion GetProjectileRotation(ref Vector3 previousPos, Vector3 currentPos)
-        {
-            var velocity = (currentPos - previousPos);
-            previousPos = currentPos;
-
-            return Quaternion.LookRotation(velocity, Vector3.up);
-        }
-    }
-
-    [HideMonoScript]
-    public class SimpleShooter : Shooter
-    {
-        [SerializeField, Tweakable] private float travelDistanceModifier;
-        [SerializeField, Tweakable] private AnimationCurve xCurve = AnimationCurve.Linear(0, 0, 1, 0);
-        [SerializeField, Tweakable] private AnimationCurve yCurve = AnimationCurve.Linear(0, 0, 1, 0);
-
-        public override void Initialize()
-        {
-            loader.Loaded.Where(_ => targetProvider.Target != null)
-                .Subscribe(x =>
-                {
-                    Shoot(x.transform, targetProvider.Target.transform);
-                }).AddTo(this);
-        }
-
-        protected override void Shoot(Transform projectile, Transform target)
-        {
-            var previousProjectilePosition = projectile.position;
-            var distance = transform.GetDistanceTo(target);
-            var modifiedDistance = distance * travelDistanceModifier;
-            var targetPosition = target.position;
-
-            Observable.EveryUpdate()
-                .Take((int)modifiedDistance)
-                .Subscribe(tick =>
-                {
-                    if (target != null)
-                    {
-                        targetPosition = target.position;
-                    }
-
-                    var travelPercent = tick / modifiedDistance;
-
-                    projectile.rotation = GetProjectileRotation(ref previousProjectilePosition, projectile.position);
-                    projectile.position = Vector3.Lerp(transform.position, targetPosition, travelPercent);
-                }, () =>
-                {
-                    HandleProjectileHitTarget(projectile.gameObject);
-                }).AddTo(this);
-        }
-
-        private Quaternion GetProjectileRotation(ref Vector3 previousPos, Vector3 currentPos)
-        {
-            var velocity = (currentPos - previousPos);
-            previousPos = currentPos;
-
-            return Quaternion.LookRotation(velocity, Vector3.up);
         }
     }
 }

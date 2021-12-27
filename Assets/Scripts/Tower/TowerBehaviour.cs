@@ -22,9 +22,9 @@ namespace TestTD.Entities
         {
             var modules = moduleContainer.gameObject.Children().OfComponent<InitializableModule>();
 
-            foreach (var item in modules)
+            foreach (var module in modules)
             {
-                item.Initialize();
+                module.Initialize();
             }
         }
 

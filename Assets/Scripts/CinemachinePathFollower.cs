@@ -19,7 +19,8 @@ namespace TestTD.Entities
 
         public IObservable<float> ReachedEnd => this.ObserveEveryValueChanged(x => x.m_Position)
                                                     .Where(_ => m_Path != null)
-                                                    .Where(x => Mathf.Approximately(x, m_Path.PathLength));
+                                                    .Where(x => Mathf.Approximately(x, m_Path.PathLength))
+                                                    .Take(1);
 
         public void SetPath(GameObjectVariable pathGO)
         {

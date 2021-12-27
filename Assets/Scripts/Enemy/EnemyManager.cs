@@ -1,20 +1,17 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using Cysharp.Threading.Tasks;
+using Satisfy.Attributes;
+using Satisfy.Bricks;
+using Satisfy.Managers;
+using Satisfy.Variables;
+using Sirenix.OdinInspector;
+using TestTD.Data;
+using TestTD.Entities;
+using UniRx;
 using UnityEngine;
 using UnityEngine.Events;
-using Sirenix.OdinInspector;
-using DG.Tweening;
-using UniRx;
-using Satisfy.Variables;
-using Satisfy.Attributes;
-using TestTD.Data;
-using System.Linq;
-using TestTD.Entities;
-using Satisfy.Managers;
-using Cysharp.Threading.Tasks;
-using TestTD.Variables;
-using Satisfy.Bricks;
 
 namespace TestTD.Systems
 {
@@ -63,7 +60,7 @@ namespace TestTD.Systems
                 await UniTask.Delay(400);
             }
 
-            Observable.Merge(waveEnemies.Select(x => Observable.Merge(x.Health.Dead, x.ReachedPlayer)))
+            waveEnemies.Select(x => x.Health.ReachedZero.Merge(x.ReachedPlayer)).Merge()
                 .Skip(waveEnemies.Count - 1)
                 .Take(1)
                 .DelayFrame(1)
@@ -93,14 +90,13 @@ namespace TestTD.Systems
                 damageToPlayer.Raise(damage);
             });
 
-            spawnedEnemy.Health.Dead.Subscribe(_ =>
+            spawnedEnemy.Health.ReachedZero.Subscribe(_ =>
             {
                 enemyDefeated.Raise(data);
+                Destroy(spawnedEnemy.gameObject);
             });
 
-            Observable.Merge(
-                spawnedEnemy.ReachedPlayer,
-                spawnedEnemy.Health.Dead)
+            spawnedEnemy.ReachedPlayer.Merge(spawnedEnemy.Health.ReachedZero)
                 .Subscribe(_ =>
                 {
                     currentEnemies.Remove(spawnedEnemy);
