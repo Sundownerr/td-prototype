@@ -25,34 +25,34 @@ namespace TestTD.Entities
 
         protected override void Shoot(Transform projectile, Transform target)
         {
-            var previousProjectilePosition = projectile.position;
-            var distance = transform.GetDistanceTo(target);
-            var modifiedDistance = distance * travelDistanceModifier;
-            var targetPosition = target.position;
-
-            Observable.EveryUpdate()
-                .Take((int)modifiedDistance)
-                .TakeUntil(targetProvider.TargetLost)
-                .DoOnCompleted(() =>
-                {
-                    HandleProjectileHitTarget(projectile.gameObject, targetProvider.Target);
-                })
-                .DoOnCancel(() =>
-                {
-                    attackFailed.OnNext(null);
-                })
-                .Subscribe(tick =>
-                {
-                    if (target != null)
-                    {
-                        targetPosition = target.position;
-                    }
-
-                    var travelPercent = tick / modifiedDistance;
-
-                    projectile.rotation = GetProjectileRotation(ref previousProjectilePosition, projectile.position);
-                    projectile.position = Vector3.Lerp(transform.position, targetPosition, travelPercent);
-                }).AddTo(this);
+            // var previousProjectilePosition = projectile.position;
+            // var distance = transform.GetDistanceTo(target);
+            // var modifiedDistance = distance * travelDistanceModifier;
+            // var targetPosition = target.position;
+            //
+            // Observable.EveryUpdate()
+            //     .Take((int)modifiedDistance)
+            //     .TakeUntil(targetProvider.TargetLost)
+            //     .DoOnCompleted(() =>
+            //     {
+            //         HandleProjectileReachedEndPoint(projectile.gameObject, targetProvider.Target);
+            //     })
+            //     .DoOnCancel(() =>
+            //     {
+            //         attackFailed.OnNext(null);
+            //     })
+            //     .Subscribe(tick =>
+            //     {
+            //         if (target != null)
+            //         {
+            //             targetPosition = target.position;
+            //         }
+            //
+            //         var travelPercent = tick / modifiedDistance;
+            //
+            //         projectile.rotation = GetProjectileRotation(ref previousProjectilePosition, projectile.position);
+            //         projectile.position = Vector3.Lerp(transform.position, targetPosition, travelPercent);
+            //     }).AddTo(this);
         }
     }
 }

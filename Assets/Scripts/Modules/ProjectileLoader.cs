@@ -29,15 +29,17 @@ namespace TestTD.Entities
                 loaded.OnNext(1);
                 return;
             }
+
+            var shootPointPosition = shootPoint.position;
             
             pool.TrySpawn(ref loadedProjectile,
-                          shootPoint.position,
+                          shootPointPosition,
                           Quaternion.LookRotation(shootPoint.forward, shootPoint.up),
                           pool.transform);
 
-            loadedProjectile.transform.position = shootPoint.position;
+            loadedProjectile.transform.position = shootPointPosition;
 
-            Debug.Log("Loading projectle");
+            // Debug.Log("Loading projectle");
             loaded.OnNext(1);
         }
 
@@ -55,7 +57,7 @@ namespace TestTD.Entities
                 {
                     isLoading = true;
 
-                    Debug.Log("Start loading");
+                    // Debug.Log("Start loading");
 
                     Observable.Interval(TimeSpan.FromSeconds(reloadTime))
                         .TakeWhile(_ => targetProvider.HaveTargets)
@@ -70,14 +72,14 @@ namespace TestTD.Entities
                 .Throttle(TimeSpan.FromSeconds(reloadTime))
                 .Subscribe(_ =>
                 {
-                    Debug.Log("Stop loading");
+                    // Debug.Log("Stop loading");
                     isLoading = false;
                 }).AddTo(this);
         }
 
         public void DisposeProjectile(GameObject projectile)
         {
-            Debug.Log("Dispose projectile");
+            // Debug.Log("Dispose projectile");
 
             pool.Despawn(projectile);
         }

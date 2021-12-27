@@ -19,7 +19,7 @@ namespace TestTD.Entities
             loader.Loaded.Where(_ => targetProvider.Target != null)
                 .Subscribe(x =>
                 {
-                    Debug.Log("shooter shooting");
+                    // Debug.Log("shooter shooting");
                     Shoot(loader.GiveProjectile().transform, targetProvider.Target.transform);
                 }).AddTo(this);
         }
@@ -39,6 +39,8 @@ namespace TestTD.Entities
                     {
                         targetPosition = target.position;
                     }
+                    
+                    Debug.DrawLine(transform.position, targetPosition, Color.red, 0.1f);
 
                     var travelPercent = tick / modifiedDistance;
 
@@ -48,17 +50,18 @@ namespace TestTD.Entities
                 }, () =>
                 {
                     loader.DisposeProjectile(projectile.gameObject);
+                    HandleProjectileReachedEndPoint(projectile.gameObject);
                     
                     if (target == null)
                     {
-                        Debug.Log("shooter failed");
+                        // Debug.Log("shooter failed");
                         attackFailed.OnNext(null);
                         return;
                     }
-
-                    HandleProjectileHitTarget(projectile.gameObject, targetProvider.Target);
+                    
+                    attackSuccesful.OnNext(target.gameObject);
                
-                    Debug.Log("shooter completed");
+                    // Debug.Log("shooter completed");
                 }).AddTo(this);
         }
 

@@ -11,56 +11,65 @@ namespace TestTD.Entities
     [HideMonoScript]
     public class TargetProvider : InitializableModule
     {
-        [SerializeField, Editor_R] Range range;
+        [SerializeField, Editor_R] private Range range;
 
-        public GameObject Target => GetTarget();
+        public GameObject Target { get; private set; }
 
-        public IObservable<GameObject> TargetChanged => this.ObserveEveryValueChanged(x => x.currentTarget);
+        public IObservable<GameObject> TargetChanged => this.ObserveEveryValueChanged(x => x.Target);
         public IObservable<GameObject> GotNewTarget => TargetChanged.Where(x => x != null);
         public IObservable<GameObject> TargetLost => TargetChanged.Where(x => x == null);
 
         public bool HaveTargets => targets.Count > 0;
 
         private readonly HashSet<GameObject> targets = new HashSet<GameObject>();
-        private GameObject currentTarget;
-
 
         public override void Initialize()
         {
             range.Entered.Subscribe(AddTarget).AddTo(this);
             range.Exit.Subscribe(RemoveTarget).AddTo(this);
+
+            Observable.EveryUpdate().Where(_ => enabled && gameObject.activeSelf)
+                .Where(_ => targets.Count > 0)
+                .Where(_ => Target == null).Subscribe(_ =>
+                {
+                    Target = GetTarget();
+                }).AddTo(this);
         }
 
-        private void RemoveTarget(Collider targetCollider)
+        private GameObject GetTarget()
         {
-            targets.Remove(targetCollider.gameObject);
+            targets.RemoveWhere(x => x == null);
 
-            if (currentTarget == targetCollider.gameObject)
-            {
-                currentTarget = GetTarget();
-            }
+            return targets.Count <= 0 ? null : targets.First();
         }
 
         private void AddTarget(Collider targetCollider)
         {
             targets.Add(targetCollider.gameObject);
 
-            if (currentTarget == null)
+            if (Target == null)
             {
-                currentTarget = targetCollider.gameObject;
+                Target = targetCollider.gameObject;
             }
+            
+            Debug.Log($"add target: {targets.Count}");
         }
 
-        private GameObject GetTarget()
+        private void RemoveTarget(Collider targetCollider)
         {
-            if (currentTarget != null)
+            if (targetCollider == null)
             {
-                return currentTarget.gameObject;
+                targets.RemoveWhere(x => x == null);
+                return;
             }
+            targets.Remove(targetCollider.gameObject);
 
-            targets.RemoveWhere(x => x == null);
-            
-            return targets.Count == 0 ? null : targets.First();
+           if (Target == targetCollider.gameObject)
+           {
+               Target = GetTarget();
+           }
+           
+           Debug.Log($"remove target: {targets.Count}");
         }
     }
 }

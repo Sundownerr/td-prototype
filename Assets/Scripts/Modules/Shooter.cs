@@ -8,7 +8,7 @@ namespace TestTD.Entities
 {
     public abstract class Shooter : InitializableModule
     {
-        public IObservable<GameObject> ProjectileReachedTarget => projectileReachedTarget;
+        public IObservable<GameObject> ProjectileReachedEndPoint => projectileReachedEndPoint;
         public IObservable<GameObject> StartAttacking => startAttacking;
         public IObservable<GameObject> AttackSuccesful => attackSuccesful;
         public IObservable<GameObject> AttackFailed => attackFailed;
@@ -17,18 +17,17 @@ namespace TestTD.Entities
         [SerializeField, Editor_R] protected TargetProvider targetProvider;
         [SerializeField, Tweakable] protected UnityEvent<GameObject> hitAction;
 
-        protected readonly Subject<GameObject> projectileReachedTarget = new Subject<GameObject>();
+        protected readonly Subject<GameObject> projectileReachedEndPoint = new Subject<GameObject>();
         protected readonly Subject<GameObject> startAttacking = new Subject<GameObject>();
         protected readonly Subject<GameObject> attackSuccesful = new Subject<GameObject>();
         protected readonly Subject<GameObject> attackFailed = new Subject<GameObject>();
         
         protected abstract void Shoot(Transform projectile, Transform target);
 
-        protected void HandleProjectileHitTarget(GameObject projectile, GameObject target)
+        protected void HandleProjectileReachedEndPoint(GameObject projectile)
         {
-            projectileReachedTarget.OnNext(projectile);
+            projectileReachedEndPoint.OnNext(projectile);
             hitAction?.Invoke(projectile);
-            attackSuccesful.OnNext(target);
         }
 
         protected Quaternion GetProjectileRotation(ref Vector3 previousPos, Vector3 currentPos)
