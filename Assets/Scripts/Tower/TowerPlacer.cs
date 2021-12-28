@@ -42,7 +42,7 @@ namespace TestTD
         [SerializeField, Variable_R] private CellObjectVariable selectedTower;
         [SerializeField, Variable_R] private CellVariable highlightedCell;
         [SerializeField, Variable_R] private CellVariable selectedCell;
-        [SerializeField, Variable_R] private GameObjectEvent setReplaceLine;
+        [SerializeField, Variable_R] private GameObjectVariable replaceLineVar;
         [SerializeField, Variable_R] private Satisfy.Bricks.SelectableEvent cellReleased;
         [SerializeField, Tweakable] private Vector3 lineOffset;
         [SerializeField, Tweakable] private UnityEvent onStartPlacing;
@@ -52,23 +52,23 @@ namespace TestTD
 
         private readonly Subject<int> finishedReplacing = new Subject<int>();
         private readonly Subject<int> canceledReplacing = new Subject<int>();
-        private LineRenderer endPointLine;
-
+        
         private State state;
         private Transform SelectedTowerRoot => selectedTower.Value.Reference.transform;
-
+        private LineRenderer endPointLine;
 
         public override void Initialize()
         {
             base.Initialize();
             listener.Initialize();
-
-            setReplaceLine.Raised.Subscribe(x =>
-            {
-                endPointLine = x.GetComponent<LineRenderer>();
-            });
-
+            
             HideLine();
+
+            replaceLineVar.Changed.Select(x => x.Current)
+                .Subscribe(x =>
+                {
+                    endPointLine = x.GetComponent<LineRenderer>();
+                });
 
             finishedReplacing.Subscribe(_ =>
             {
@@ -108,11 +108,13 @@ namespace TestTD
             Observable.EveryUpdate().TakeUntil(finishedReplacing.Merge(canceledReplacing))
                 .Subscribe(_ =>
                 {
+                    var targetPosition = GetTargetPosition() + lineOffset;
+                    
                     SelectedTowerRoot.position = Vector3.Lerp(SelectedTowerRoot.position,
-                                                              GetTargetPosition() + lineOffset,
+                                                              targetPosition,
                                                               Time.deltaTime * 25f);
 
-                    endPointLine.SetPosition(1, SelectedTowerRoot.position + lineOffset);
+                    endPointLine.SetPosition(1, targetPosition);
                 });
 
             pointerDown.Raised.Take(1)
