@@ -48,12 +48,14 @@ namespace TestTD.UI
 
         public bool TryGetFreeCell(out InventoryCellUI cell)
         {
+            DeselectCells();
             cell = null;
             
             if (freeCells.Count == 0)
                 return false;
 
             cell = freeCells.First();
+            cell.CurrentState = InventoryCellUI.State.Selected;
             
             return cell != null;
         }
@@ -63,7 +65,7 @@ namespace TestTD.UI
             return usedCells.TryGetValue(item, out cell);
         }
 
-        private void DeselectCells()
+        public void DeselectCells()
         {
             var selectedCells = cells.Where(x => x.CurrentState == InventoryCellUI.State.Selected);
 

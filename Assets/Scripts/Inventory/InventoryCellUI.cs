@@ -11,7 +11,7 @@ namespace TestTD.UI
         public enum State { Used, Selected, Free }
 
         public State CurrentState { get; set; } = State.Free;
-        public bool IsFree => CurrentState != State.Used && CurrentState != State.Selected;
+        public bool IsFree => CurrentState != State.Used;
         
         [SerializeField, Tweakable] private UnityEvent onSelected;
         [SerializeField, Tweakable] private UnityEvent onUsed;

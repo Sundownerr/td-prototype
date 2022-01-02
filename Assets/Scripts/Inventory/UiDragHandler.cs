@@ -14,6 +14,7 @@ namespace TestTD.UI
     [Serializable]
     public class UiDragHandler : ScriptableObjectSystem
     {
+        [SerializeField, Variable_R] private GameObjectVariable draggedParent;
         [SerializeField, Variable_R] private Vector2Variable pointerCurrentPos;
         [SerializeField, Variable_R] private Event release;
       
@@ -30,6 +31,7 @@ namespace TestTD.UI
             draggable.DragStart.TakeUntil(stopObserve.Where(x => x == draggable))
                 .Subscribe(_ =>
                 {
+                    draggable.transform.SetParent(draggedParent.Value.transform);
                     startedDrag.OnNext(draggable);
 
                     var speed = 0;
@@ -77,9 +79,16 @@ namespace TestTD.UI
             stopObserve.OnNext(draggable);
         }
 
-        public void Place(InventoryDraggable draggable, Vector3 position)
+        public void Place(InventoryDraggable draggable, Vector3 position, float time = 0f)
         {
-            draggable.transform.position = position;
+            if(time == 0f)
+            {
+                draggable.transform.position = position;
+                return;
+            }
+
+            draggable.transform.DOKill(true);
+            draggable.transform.DOMove(position, time);
         }
     }
 }

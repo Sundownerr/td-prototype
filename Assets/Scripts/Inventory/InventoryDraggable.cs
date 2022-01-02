@@ -20,17 +20,17 @@ namespace TestTD.UI
         [SerializeField, Tweakable] private UnityEvent onBadPlace;
         [SerializeField, Tweakable] private UnityEvent onGoodPlace;
         [SerializeField, Tweakable] private UnityEvent onPlaced;
+        [SerializeField, Tweakable] private UnityEvent onHighlight;
+        [SerializeField, Tweakable] private UnityEvent onDehighlight;
 
         public override void Highlight()
         {
-            Debug.Log($"Highlight {name}");
-            // throw new NotImplementedException();
+           onHighlight?.Invoke();
         }
 
         public override void Dehighlight()
         {
-            Debug.Log($"DeHighlight {name}");
-            // throw new NotImplementedException();
+            onDehighlight?.Invoke();
         }
         
         public void SetPlaceState(PlaceState state)

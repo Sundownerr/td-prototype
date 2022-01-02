@@ -7,14 +7,18 @@ using Satisfy.Attributes;
 using Satisfy.Variables;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
+using UniRx.Triggers;
 using Event = Satisfy.Bricks.Event;
 using Unit = Satisfy.Bricks.Unit;
 
 namespace TestTD.UI
 {
-    public class InventoryUI : MonoBehaviour
+    public class InventoryUI : UIElement
     {
         [SerializeField, Variable_R] private List<Unit> itemTypes;
+        [SerializeField, Variable_R] private GameObjectVariable activeInventory;
+        [SerializeField, Editor_R] private RectTransform inventoryRect;
+        [SerializeField, Editor_R] private Transform itemParent;
         [SerializeField, Editor_R] private InventoryCellHandler cellHandler;
         [SerializeField, Editor_R] private UiDragHandler dragHandler;
 
@@ -23,29 +27,43 @@ namespace TestTD.UI
         private void OnEnable()
         {
             var canPlaceItem = false;
-            var isItemFromThisInventory = false;    
-            InventoryCellUI closestCell = null;
-            InventoryCellUI usedCell = null;
-
+            InventoryCellUI freeCell = null;
+            
+            
+        // todo: fix used cells bug: sometimes replacing from one to another inventory leaves used cell 
             dragHandler.StartedDrag.TakeWhile(_ => enabled && gameObject.activeSelf)
-                .Do(item =>
-                {
-                    isItemFromThisInventory = cellHandler.TryGetItemCell(item.transform, out usedCell);
-                    
-                     if (!isItemFromThisInventory)
-                        return;
-                     
-                     RemoveItem(item);
-                })
                 .Subscribe(item =>
                 {
+                    RemoveItem(item);
                     SetTopVisible(item.transform);
 
                     Observable.EveryUpdate().TakeWhile(_ => enabled && gameObject.activeSelf)
+                        .Do(_ =>
+                        {
+                            var insideRect =
+                                RectTransformUtility.RectangleContainsScreenPoint(inventoryRect, Input.mousePosition);
+                            
+                            if(insideRect)
+                            {
+                                activeInventory.SetValue(gameObject);
+                                return;
+                            }
+
+                            canPlaceItem = false;
+                            cellHandler.DeselectCells();
+                        })
                         .TakeUntil(dragHandler.EndedDrag)
+                        .Where(_ => activeInventory.Value == gameObject)
                         .Subscribe(_ =>
                         {
-                            canPlaceItem = cellHandler.TryGetFreeClosestCell(item.transform, out closestCell);
+                            var haveFreeCell = cellHandler.TryGetFreeCell(out freeCell);
+                            
+                            canPlaceItem = haveFreeCell;
+                            
+                            if (!canPlaceItem)
+                            {
+                                cellHandler.DeselectCells();
+                            }
 
                             item.SetPlaceState(canPlaceItem
                                 ? InventoryDraggable.PlaceState.Good
@@ -55,12 +73,7 @@ namespace TestTD.UI
 
             dragHandler.EndedDrag
                 .Where(_ => canPlaceItem)
-                .Subscribe(item => { AddItem(item, closestCell); }).AddTo(this);
-
-            dragHandler.EndedDrag
-                .Where(_ => !canPlaceItem)
-                .Where(_ => isItemFromThisInventory)
-                .Subscribe(item => { AddItem(item, usedCell); }).AddTo(this);
+                .Subscribe(item => { AddItem(item, freeCell); }).AddTo(this);
         }
 
         [Button]
@@ -76,22 +89,26 @@ namespace TestTD.UI
         {
             if (!itemTypes.Contains(item.Type))
                 return;
+            
+            Debug.Log($"add {item.name} to {name}");
 
             item.SetPlaceState(InventoryDraggable.PlaceState.Placed);
             
-            dragHandler.Place(item, cell.transform.position);
+            dragHandler.Place(item, cell.transform.position, 0.15f);
             dragHandler.Observe(item);
 
             cellHandler.UseCell(cell, item.transform);
             
             items.Add(item);
+            
+            item.transform.SetParent(itemParent);
         }
 
         public bool RemoveItem(InventoryDraggable item)
         {
             if (!items.Remove(item))
             {
-                Debug.LogError($"{name} dont have item {item.name}");
+                // Debug.LogError($"{name} dont have item {item.name}");
                 return false;
             }
 
