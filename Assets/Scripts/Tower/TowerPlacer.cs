@@ -35,32 +35,38 @@ namespace TestTD
     {
         private enum State
         {
-            Waiting, Replacing, BadPosition,
+            Idle, Placing, BadPosition,
         }
         [SerializeField, Variable_R] private Satisfy.Bricks.Event pointerDown;
         [SerializeField, Variable_R] private Satisfy.Bricks.Event pointerUp;
         [SerializeField, Variable_R] private CellObjectVariable selectedTower;
         [SerializeField, Variable_R] private CellVariable highlightedCell;
         [SerializeField, Variable_R] private CellVariable selectedCell;
+        [SerializeField, Variable_R] private CellObjectEvent placed;
         [SerializeField, Variable_R] private GameObjectVariable replaceLineVar;
         [SerializeField, Variable_R] private Satisfy.Bricks.SelectableEvent cellReleased;
         [SerializeField, Tweakable] private Vector3 lineOffset;
         [SerializeField, Tweakable] private UnityEvent onStartPlacing;
         [SerializeField, Tweakable] private UnityEvent onEndPlacingSuccess;
         [SerializeField, Tweakable] private UnityEvent onEndPlacingCanceled;
+        [SerializeField] private EventListenerEmbedded<CellObjectEvent, CellObject> cellObjectListener;
         [SerializeField] private BaseListener listener;
 
-        private readonly Subject<int> finishedReplacing = new Subject<int>();
-        private readonly Subject<int> canceledReplacing = new Subject<int>();
+        private readonly Subject<int> finishedPlacing = new Subject<int>();
+        private readonly Subject<int> canceledPlacing = new Subject<int>();
         
         private State state;
-        private Transform SelectedTowerRoot => selectedTower.Value.Reference.transform;
         private LineRenderer endPointLine;
+        private IObservable<long> whenPlacing => Observable.EveryUpdate()
+            .TakeUntil(finishedPlacing.Merge(canceledPlacing));
+
+        private CellObject targetTower;
 
         public override void Initialize()
         {
             base.Initialize();
             listener.Initialize();
+            cellObjectListener.Initialize();
             
             HideLine();
 
@@ -70,64 +76,86 @@ namespace TestTD
                     endPointLine = x.GetComponent<LineRenderer>();
                 });
 
-            finishedReplacing.Subscribe(_ =>
+            finishedPlacing.Subscribe(_ =>
             {
                 HideLine();
 
-                selectedTower.CellObject.UseCell(selectedCell.Cell);
-                MoveTowerTo(selectedCell.Value.transform.position);
+                targetTower.UseCell(selectedCell.Cell);
 
+                targetTower.Reference.transform.DOMove(
+                    selectedCell.Value.transform.position, 0.2f);
+
+                placed.Raise(targetTower);
+             
                 onEndPlacingSuccess?.Invoke();
             });
 
-            canceledReplacing.Subscribe(_ =>
+            canceledPlacing.Subscribe(_ =>
             {
                 HideLine();
-                MoveTowerTo(selectedTower.CellObject.Cell.transform.position);
+                
+                targetTower.Reference.transform.DOMove(
+                    targetTower.Cell.transform.position, 0.2f);
 
+                targetTower.UseCell(targetTower.Cell);
+
+                placed.Raise(targetTower);
+                
                 onEndPlacingCanceled?.Invoke();
             });
 
-            finishedReplacing.Merge(canceledReplacing)
+            finishedPlacing.Merge(canceledPlacing)
                 .Subscribe(_ =>
                 {
-                    state = State.Waiting;
+                    state = State.Idle;
                 });
         }
 
-        public void StartReplacing()
+        public void Replace(CellObject tower)
         {
-            state = State.Replacing;
+            targetTower = tower;
+            var movedObject = tower.Reference.transform;
+            
+            ShowLine(movedObject);
+            cellReleased.Raise(tower.Cell);
+            
+            Place(movedObject);
+        }
 
-            cellReleased.Raise(selectedTower.CellObject.Cell);
+        public void Replace(CellObjectVariable tower) => Replace(tower.CellObject);
 
-            ShowLine();
+        public void Place(CellObjectVariable tower){    Place(tower.CellObject);}
 
+        public void Place(CellObject tower)
+        {
+            targetTower = tower;
+            Place(tower.Reference.transform);
+        }
+
+        public void Place(Transform tower)
+        {
+            state = State.Placing;
             onStartPlacing?.Invoke();
+            
+            whenPlacing.Subscribe(_ =>
+            {
+                var towerPosition = tower.position;
+                var targetPosition = GetTargetPosition(towerPosition) + lineOffset;
 
-            Observable.EveryUpdate().TakeUntil(finishedReplacing.Merge(canceledReplacing))
-                .Subscribe(_ =>
-                {
-                    var targetPosition = GetTargetPosition() + lineOffset;
-                    
-                    SelectedTowerRoot.position = Vector3.Lerp(SelectedTowerRoot.position,
-                                                              targetPosition,
-                                                              Time.deltaTime * 25f);
+                towerPosition = Vector3.Lerp(towerPosition,targetPosition,Time.deltaTime * 25f);
+                
+                tower.position = towerPosition;
+            });
 
-                    endPointLine.SetPosition(1, targetPosition);
-                });
-
-            pointerDown.Raised.Take(1)
-                .TakeUntil(canceledReplacing)
-                .Subscribe(_ =>
-                {
-                    finishedReplacing.OnNext(1);
-                });
+            pointerDown.Raised.Where(_ => highlightedCell != null && !highlightedCell.Cell.IsUsed)
+                .Take(1)
+                // .TakeUntil(canceledPlacing)
+                .Subscribe(_ => { finishedPlacing.OnNext(1); });
         }
 
-        private Vector3 GetTargetPosition()
+        private Vector3 GetTargetPosition(Vector3 currentPos)
         {
-            var endPosition = SelectedTowerRoot.position;
+            var endPosition = currentPos;
 
             if (highlightedCell.Value != null)
             {
@@ -137,29 +165,30 @@ namespace TestTD
             return endPosition;
         }
 
-        public void CancelReplacing()
+        public void CancelPlacing()
         {
-            if (state == State.Waiting)
+            if (state == State.Idle)
                 return;
 
             if (selectedTower.Value == null)
                 return;
 
-            canceledReplacing.OnNext(1);
+            canceledPlacing.OnNext(1);
         }
-
-        private void MoveTowerTo(Vector3 position)
+        
+        private void ShowLine(Transform movedObject)
         {
-            SelectedTowerRoot.DOMove(position, 0.2f);
-        }
-
-        private void ShowLine()
-        {
-            endPointLine.SetPosition(0, SelectedTowerRoot.position);
-            endPointLine.SetPosition(1, SelectedTowerRoot.position);
+            endPointLine.SetPosition(0, movedObject.position);
+            endPointLine.SetPosition(1, movedObject.position);
 
             endPointLine.gameObject.SetActive(true);
             DOTween.To(() => endPointLine.widthMultiplier, val => { endPointLine.widthMultiplier = val; }, 1, 0.2f);
+
+            whenPlacing.Subscribe(_ =>
+            {
+                var targetPosition = GetTargetPosition(movedObject.position) + lineOffset;
+                endPointLine.SetPosition(1, targetPosition);
+            });
         }
 
         private void HideLine()
@@ -167,7 +196,7 @@ namespace TestTD
             DOTween.To(() => endPointLine.widthMultiplier, val => { endPointLine.widthMultiplier = val; }, 0, 0.1f)
                 .OnUpdate(() =>
                 {
-                    endPointLine.SetPosition(1, SelectedTowerRoot.position);
+                    endPointLine.SetPosition(1, targetTower.Reference.transform.position);
                 })
                 .OnComplete(() =>
                 {

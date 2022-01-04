@@ -37,36 +37,33 @@ namespace TestTD
                         highlighted.Dehighlight();
                     }
 
-                    highlighted = x;
                     x.Highlight();
+                    highlighted = x;
                 }).AddTo(this);
 
-            raycaster.LostHitObject.Where(_ => highlighted != null)
-                .Where(_ => !highlighted.IsSelected)
-                .Subscribe(_ =>
-                {
-                    highlighted.Dehighlight();
-                    highlighted = null;
-                }).AddTo(this);
-
+            raycaster.LostHitObject.Subscribe(_ =>
+            {
+                if (highlighted == null)
+                    return;
+                
+                highlighted.Dehighlight();
+                highlighted = null;
+            }).AddTo(this);
+            
             var eventSystem = EventSystem.current;
 
             var click = pointerDown.Raised.Where(_ => enabled)
-                                          .Where(_ => !eventSystem.IsPointerOverGameObject())
-                                          .Select(x => highlighted);
+                                          .Where(_ => !eventSystem.IsPointerOverGameObject());
 
-            click.Where(x => x != null)
-                .Subscribe(x =>
-                {
-                    DeselectCurrent();
-                    Select(x.GetComponent<Selectable>());
-                }).AddTo(this);
+            click.Subscribe(x =>
+            {
+                DeselectCurrent();
 
-            click.Where(x => x == null)
-                .Subscribe(_ =>
-                {
-                    DeselectCurrent();
-                }).AddTo(this);
+                if (highlighted == null)
+                    return;
+                
+                Select(highlighted);
+            }).AddTo(this);
 
             this.ObserveEveryValueChanged(x => x.enabled)
                 .Where(x => x == false)
@@ -79,6 +76,9 @@ namespace TestTD
 
         public void Select(Selectable selectable)
         {
+            if (currentSelected == selectable)
+                return;
+            
             currentSelected = selectable;
             currentSelected.Select();
 
@@ -92,14 +92,13 @@ namespace TestTD
 
         public void DeselectCurrent()
         {
-            if (currentSelected != null)
-            {
-                currentSelected.Deselect();
+            if (currentSelected == null)
+                return;
+            
+            currentSelected.Deselect();
+            onDeselected?.Invoke(currentSelected);
 
-                onDeselected?.Invoke(currentSelected);
-
-                currentSelected = null;
-            }
+            currentSelected = null;
         }
     }
 }

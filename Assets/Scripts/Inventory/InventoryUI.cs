@@ -4,6 +4,7 @@ using UnityEngine;
 using UniRx;
 using System.Linq;
 using Satisfy.Attributes;
+using Satisfy.Bricks;
 using Satisfy.Variables;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
@@ -15,6 +16,7 @@ namespace TestTD.UI
 {
     public class InventoryUI : UIElement
     {
+        [SerializeField, Variable_R] private GameObjectEvent itemRemoved;
         [SerializeField, Variable_R] private List<Unit> itemTypes;
         [SerializeField, Variable_R] private GameObjectVariable activeInventory;
         [SerializeField, Editor_R] private RectTransform inventoryRect;
@@ -27,7 +29,7 @@ namespace TestTD.UI
         private void OnEnable()
         {
             var canPlaceItem = false;
-            InventoryCellUI freeCell = null;
+            InventoryCell freeCell = null;
             
             
         // todo: fix used cells bug: sometimes replacing from one to another inventory leaves used cell 
@@ -85,7 +87,7 @@ namespace TestTD.UI
             AddItem(item,cell);
         }
 
-        private void AddItem(InventoryDraggable item, InventoryCellUI cell)
+        private void AddItem(InventoryDraggable item, InventoryCell cell)
         {
             if (!itemTypes.Contains(item.Type))
                 return;
@@ -114,6 +116,8 @@ namespace TestTD.UI
 
             cellHandler.ReleaseCell(item.transform);
             dragHandler.StopObserve(item);
+
+            itemRemoved.Raise(item.gameObject);
             return true;
         }
 

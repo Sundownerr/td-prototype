@@ -14,13 +14,6 @@ namespace TestTD
 {
     public class CellManager : MonoBehaviour
     {
-        [SerializeField, Tweakable] private UnityEvent<Cell> onSelectedTowerCell;
-
-        public void HandleTowerSelected(CellObjectVariable tower)
-        {
-            onSelectedTowerCell?.Invoke(tower.CellObject.Cell);
-        }
-
         public void ReleaseCell(Selectable cell)
         {
             cell.GetComponent<Cell>().SetFree();

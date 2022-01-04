@@ -9,6 +9,7 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+/Assets/Assets/
 /Assets/Plugins/
 /Assets/ThirdParty/
 /Assets/Third Party/

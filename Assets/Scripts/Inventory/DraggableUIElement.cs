@@ -8,16 +8,6 @@ using UnityEngine.EventSystems;
 
 namespace TestTD.UI
 {
-    // public class InventoryTower : InventoryDraggable
-    // {
-    //     private TowerData data;
-    // }
-    //
-    // public class InventoryItem : InventoryDraggable
-    // {
-    //     private TowerData data;
-    // }
-    
     public abstract class DraggableUIElement : MonoBehaviour,
         IPointerDownHandler,
         IPointerUpHandler,
@@ -39,7 +29,7 @@ namespace TestTD.UI
             .Select(x => x.Current);
 
         public IObservable<State> HighlightEnd => stateChanged.Pairwise()
-            .Where(x => x.Previous == State.Highlighted && x.Current == State.Sleep)
+            .Where(x => (x.Previous == State.Drag || x.Previous == State.Highlighted) && x.Current == State.Sleep)
             .Select(x => x.Current);
 
         public IObservable<State> HighlightStart => stateChanged.Pairwise()

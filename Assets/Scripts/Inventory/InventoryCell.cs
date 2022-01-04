@@ -6,7 +6,7 @@ using Satisfy.Attributes;
 
 namespace TestTD.UI
 {
-    public class InventoryCellUI : MonoBehaviour
+    public class InventoryCell : MonoBehaviour
     {
         public enum State { Used, Selected, Free }
 

@@ -21,8 +21,6 @@ namespace TestTD
     public class TowerBuilder : ScriptableObjectSystem
     {
         [SerializeField, Variable_R] private GameObjectVariable towerParent;
-        [SerializeField, Variable_R] private CellVariable selectedCell;
-        [SerializeField, Variable_R] private CellObjectVariable selectedTower;
         [SerializeField, Tweakable] private UnityEvent<CellObject> onTowerBuilded;
         [SerializeField] private EventListenerEmbedded<TowerDataEvent, TowerData> towerDataListener;
         [SerializeField] private BaseListener listener;
@@ -36,7 +34,7 @@ namespace TestTD
         [Button, Debugging]
         public void BuildTower(TowerData towerData)
         {
-            var buildPosition = selectedCell.Value.transform.position;
+            var buildPosition = Vector3.zero;
 
             var tower = Instantiate(towerData.Prefab,
                                     buildPosition,
@@ -44,9 +42,7 @@ namespace TestTD
                                     towerParent.Value.transform);
 
             var cellObject = tower.GetComponentInChildren<CellObject>();
-
-            cellObject.UseCell(selectedCell.Cell);
-
+            
             onTowerBuilded?.Invoke(cellObject);
         }
 

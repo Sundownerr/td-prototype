@@ -13,19 +13,19 @@ namespace TestTD.UI
     {
         [SerializeField, Tweakable] private float distanceToCell;
         [SerializeField, Editor_R] private GameObject cellsParent;
-        private List<InventoryCellUI> cells;
-        private List<InventoryCellUI> freeCells => cells.FindAll(x => x.IsFree);
+        private List<InventoryCell> cells;
+        private List<InventoryCell> freeCells => cells.FindAll(x => x.IsFree);
 
-        private readonly Dictionary<Transform, InventoryCellUI>
-            usedCells = new Dictionary<Transform, InventoryCellUI>();
+        private readonly Dictionary<Transform, InventoryCell>
+            usedCells = new Dictionary<Transform, InventoryCell>();
 
         private void Start()
         {
-            cells = cellsParent.Children().OfComponent<InventoryCellUI>().ToList();
+            cells = cellsParent.Children().OfComponent<InventoryCell>().ToList();
             var update = Observable.EveryUpdate().Where(_ => enabled && gameObject.activeSelf);
         }
 
-        public bool TryGetFreeClosestCell(Transform item, out InventoryCellUI closestCell)
+        public bool TryGetFreeClosestCell(Transform item, out InventoryCell closestCell)
         {
             DeselectCells();
 
@@ -41,12 +41,12 @@ namespace TestTD.UI
             if (closestCell == null) 
                 return false;
             
-            closestCell.CurrentState = InventoryCellUI.State.Selected;
+            closestCell.CurrentState = InventoryCell.State.Selected;
             
             return true;
         }
 
-        public bool TryGetFreeCell(out InventoryCellUI cell)
+        public bool TryGetFreeCell(out InventoryCell cell)
         {
             DeselectCells();
             cell = null;
@@ -55,35 +55,35 @@ namespace TestTD.UI
                 return false;
 
             cell = freeCells.First();
-            cell.CurrentState = InventoryCellUI.State.Selected;
+            cell.CurrentState = InventoryCell.State.Selected;
             
             return cell != null;
         }
 
-        public bool TryGetItemCell(Transform item, out InventoryCellUI cell)
+        public bool TryGetItemCell(Transform item, out InventoryCell cell)
         {
             return usedCells.TryGetValue(item, out cell);
         }
 
         public void DeselectCells()
         {
-            var selectedCells = cells.Where(x => x.CurrentState == InventoryCellUI.State.Selected);
+            var selectedCells = cells.Where(x => x.CurrentState == InventoryCell.State.Selected);
 
             foreach (var cell in selectedCells)
             {
-                cell.CurrentState = InventoryCellUI.State.Free;
+                cell.CurrentState = InventoryCell.State.Free;
             }
         }
 
         public void ReleaseCell(Transform item)
         {
-            usedCells[item].CurrentState = InventoryCellUI.State.Free;
+            usedCells[item].CurrentState = InventoryCell.State.Free;
             usedCells.Remove(item);
         }
 
-        public void UseCell(InventoryCellUI cell, Transform item)
+        public void UseCell(InventoryCell cell, Transform item)
         {
-            cell.CurrentState = InventoryCellUI.State.Used;
+            cell.CurrentState = InventoryCell.State.Used;
             usedCells.Add(item, cell);
         }
     }
